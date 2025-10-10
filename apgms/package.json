@@ -1,0 +1,1 @@
+﻿{"name":"apgms","private":true,"version":"0.1.0","workspaces":["services/*","webapp","shared","worker"],"scripts":{"build":"pnpm -r run build","test":"pnpm -r run test"}}

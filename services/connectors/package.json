@@ -1,0 +1,10 @@
+﻿{
+  "name": "@apgms/connectors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo build connectors",
+    "test": "echo test connectors"
+  }
+}

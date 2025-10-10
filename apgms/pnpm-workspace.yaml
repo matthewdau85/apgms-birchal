@@ -1,0 +1,5 @@
+﻿packages:
+  - 'services/*'
+  - 'webapp'
+  - 'shared'
+  - 'worker'

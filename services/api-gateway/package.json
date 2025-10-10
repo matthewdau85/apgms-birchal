@@ -1,0 +1,10 @@
+﻿{
+  "name": "@apgms/api-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo build api-gateway",
+    "test": "echo test api-gateway"
+  }
+}
