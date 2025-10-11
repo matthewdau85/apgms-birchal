@@ -1,36 +1,176 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+enum UserRole {
+  OWNER
+  ADMIN
+  ACCOUNTANT
+  VIEWER
+}
+
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id          String       @id @default(uuid()) @db.Uuid
+  slug        String       @unique
+  name        String
+  timezone    String       @default("Australia/Melbourne")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  users       User[]
+  bankLines   BankLine[]
+  gstTxns     GstTxn[]
+  paygwTxns   PaygwTxn[]
+  basDrafts   BasDraft[]
+  auditEvents AuditEvent[]
+  secrets     SecretBlob[]
+
+  @@map("org")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
+  id             String    @id @default(uuid()) @db.Uuid
+  orgId          String    @db.Uuid @map("org_id")
+  email          String
+  passwordHash   String    @map("password_hash")
+  role           UserRole  @default(VIEWER)
+  mfaEnabled     Boolean   @default(false) @map("mfa_enabled")
+  invitedAt      DateTime? @map("invited_at")
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  org            Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdEvents  AuditEvent[] @relation("AuditEventCreatedBy")
+  preparedDrafts BasDraft[]   @relation("BasDraftPreparedBy")
+  reviewedDrafts BasDraft[]   @relation("BasDraftReviewedBy")
+
+  @@unique([orgId, email])
+  @@index([orgId, role])
+  @@map("user_account")
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid()) @db.Uuid
+  orgId           String   @db.Uuid @map("org_id")
+  externalId      String   @map("external_id")
+  bankAccount     String   @map("bank_account")
+  postedAt        DateTime @map("posted_at")
+  valueDate       DateTime @map("value_date")
+  amountCents     BigInt   @map("amount_cents")
+  balanceCents    BigInt?  @map("balance_cents")
+  counterparty    String?  @map("counterparty")
+  description     String?  @map("description")
+  reference       String?  @map("reference")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  org             Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  gstTxn          GstTxn?  @relation(fields: [gstTxnId], references: [id])
+  gstTxnId        String?  @db.Uuid @map("gst_txn_id")
+
+  @@unique([orgId, externalId])
+  @@index([orgId, postedAt])
+  @@map("bank_line")
+}
+
+model GstTxn {
+  id                String    @id @default(uuid()) @db.Uuid
+  orgId             String    @db.Uuid @map("org_id")
+  sourceDocument    String    @map("source_document")
+  periodKey         String    @map("period_key")
+  gstCollectedCents BigInt    @map("gst_collected_cents")
+  gstPaidCents      BigInt    @map("gst_paid_cents")
+  netAmountCents    BigInt    @map("net_amount_cents")
+  status            String    @default("unmatched")
+  txnDate           DateTime  @map("txn_date")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  org               Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, sourceDocument])
+  @@index([orgId, periodKey])
+  @@map("gst_txn")
+}
+
+model PaygwTxn {
+  id                 String   @id @default(uuid()) @db.Uuid
+  orgId              String   @db.Uuid @map("org_id")
+  payrollRunId       String   @map("payroll_run_id")
+  periodStart        DateTime @map("period_start")
+  periodEnd          DateTime @map("period_end")
+  paygwWithheldCents BigInt   @map("paygw_withheld_cents")
+  superAccruedCents  BigInt   @map("super_accrued_cents")
+  grossPayCents      BigInt   @map("gross_pay_cents")
+  submittedAt        DateTime? @map("submitted_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  org                Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, payrollRunId])
+  @@index([orgId, periodEnd])
+  @@map("paygw_txn")
+}
+
+model BasDraft {
+  id                   String   @id @default(uuid()) @db.Uuid
+  orgId                String   @db.Uuid @map("org_id")
+  periodKey            String   @map("period_key")
+  preparedByUserId     String?  @db.Uuid @map("prepared_by_user_id")
+  reviewedByUserId     String?  @db.Uuid @map("reviewed_by_user_id")
+  gstPayableCents      BigInt   @map("gst_payable_cents")
+  gstReceivableCents   BigInt   @map("gst_receivable_cents")
+  paygwWithheldCents   BigInt   @map("paygw_withheld_cents")
+  netPayableCents      BigInt   @map("net_payable_cents")
+  notes                String?  @map("notes")
+  status               String   @default("draft")
+  submittedAt          DateTime? @map("submitted_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  org                  Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  preparedBy           User?    @relation("BasDraftPreparedBy", fields: [preparedByUserId], references: [id])
+  reviewedBy           User?    @relation("BasDraftReviewedBy", fields: [reviewedByUserId], references: [id])
+
+  @@unique([orgId, periodKey])
+  @@index([orgId, status])
+  @@map("bas_draft")
+}
+
+model AuditEvent {
+  id              String   @id @default(uuid()) @db.Uuid
+  orgId           String   @db.Uuid @map("org_id")
+  actorUserId     String?  @db.Uuid @map("actor_user_id")
+  actorEmail      String?  @map("actor_email")
+  action          String
+  ipAddress       String?  @map("ip_address")
+  userAgent       String?  @map("user_agent")
+  metadata        Json?    @map("metadata")
+  createdAt       DateTime @default(now()) @map("created_at")
+  org             Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor           User?    @relation("AuditEventCreatedBy", fields: [actorUserId], references: [id])
+
+  @@index([orgId, createdAt])
+  @@map("audit_event")
+}
+
+model SecretBlob {
+  id            String   @id @default(uuid()) @db.Uuid
+  orgId         String   @db.Uuid @map("org_id")
+  secretKey     String   @map("secret_key")
+  version       Int      @map("version")
+  cipher        String   @map("cipher")
+  iv            Bytes    @map("iv")
+  ciphertext    Bytes    @map("ciphertext")
+  authTag       Bytes?   @map("auth_tag")
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  rotatedAt     DateTime? @map("rotated_at")
+  org           Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, secretKey, version])
+  @@index([orgId, secretKey])
+  @@map("secret_blob")
 }
