@@ -1,0 +1,62 @@
+name: Security Scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+jobs:
+  security:
+    name: Security Tooling
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          ignore-unfixed: true
+          format: table
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: apgms
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate package-lock for audit
+        working-directory: apgms
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: npm audit
+        working-directory: apgms
+        run: npm audit --omit dev
+
+      - name: Generate CycloneDX SBOM
+        working-directory: apgms
+        run: pnpm dlx @cyclonedx/cyclonedx-npm --json --output-file sbom.json
+
+      - name: Upload CycloneDX SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclonedx-sbom
+          path: apgms/sbom.json
+          if-no-files-found: error
