@@ -1,8 +1,93 @@
-﻿name: Security
+name: Security
 on: [push]
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo scanning
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate CycloneDX SBOMs
+        run: |
+          set -euo pipefail
+          : "${GITHUB_WORKSPACE:=$PWD}"
+          mkdir -p "$GITHUB_WORKSPACE/sbom"
+          pnpm m ls --json | jq -r '.[] | "\(.name)|\(.path)"' | while IFS='|' read -r name path; do
+            rel="$(realpath --relative-to="$PWD" "$path")"
+            safe="$(echo "$name" | tr '@/:' '__')"
+            echo "Generating SBOM for $name (path: $rel)"
+            (
+              cd "$rel"
+              pnpm dlx @cyclonedx/cyclonedx-npm --output-file "$GITHUB_WORKSPACE/sbom/${safe}.xml"
+            )
+          done
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclonedx-sboms
+          path: sbom
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          install-only: true
+
+      - name: Scan Docker images with Trivy
+        id: trivy
+        shell: bash
+        run: |
+          set -o pipefail
+          set +e
+          : "${GITHUB_WORKSPACE:=$PWD}"
+          mkdir -p "$GITHUB_WORKSPACE/trivy"
+          mapfile -t images < <(docker images --format '{{.Repository}}:{{.Tag}}' | grep -v '<none>' || true)
+          if [ ${#images[@]} -eq 0 ]; then
+            echo "No Docker images found to scan."
+            echo "has_images=false" >> "$GITHUB_OUTPUT"
+            echo "exit_code=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_images=true" >> "$GITHUB_OUTPUT"
+          status=0
+          for image in "${images[@]}"; do
+            if [ -z "$image" ]; then
+              continue
+            fi
+            safe="$(echo "$image" | tr '/:' '__')"
+            echo "Scanning $image"
+            trivy image --severity CRITICAL --exit-code 1 --no-progress --format sarif --output "$GITHUB_WORKSPACE/trivy/${safe}.sarif" "$image"
+            code=$?
+            if [ $code -ne 0 ]; then
+              status=1
+            fi
+          done
+          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload Trivy scan results
+        if: steps.trivy.outputs.has_images == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-image-scans
+          path: trivy
+
+      - name: Fail on critical vulnerabilities
+        if: steps.trivy.outputs.exit_code != '0'
+        run: |
+          echo "Trivy detected critical vulnerabilities in container images."
+          exit 1
