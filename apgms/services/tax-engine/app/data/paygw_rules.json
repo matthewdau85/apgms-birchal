@@ -1,0 +1,27 @@
+{
+  "rule_sets": [
+    {
+      "ruleset_id": "paygw-2023-07",
+      "rule_pack_version": "2023.4",
+      "effective_from": "2023-07-01",
+      "effective_to": "2024-06-30",
+      "source_url": "https://ato.gov.au/paygw/2023-07",
+      "source_digest": "sha256:2023",
+      "brackets": [
+        {"lower_bound": "0", "upper_bound": "500", "base_tax": "0", "marginal_rate": "0.10"},
+        {"lower_bound": "500", "upper_bound": null, "base_tax": "50", "marginal_rate": "0.20"}
+      ]
+    },
+    {
+      "ruleset_id": "paygw-2024-07",
+      "rule_pack_version": "2024.1",
+      "effective_from": "2024-07-01",
+      "source_url": "https://ato.gov.au/paygw/2024-07",
+      "source_digest": "sha256:2024",
+      "brackets": [
+        {"lower_bound": "0", "upper_bound": "600", "base_tax": "0", "marginal_rate": "0.12"},
+        {"lower_bound": "600", "upper_bound": null, "base_tax": "72", "marginal_rate": "0.22"}
+      ]
+    }
+  ]
+}
