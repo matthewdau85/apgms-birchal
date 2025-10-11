@@ -1,80 +1,140 @@
-﻿import path from "node:path";
-import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
+import path from "node:path";
 
-// Load repo-root .env from src/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
-import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import Fastify from "fastify";
+import dotenv from "dotenv";
+import { z } from "zod";
+import { prisma, seedDemoData } from "@apgms/shared";
+
+type RawBankLine = {
+  id: string;
+  orgId: string;
+  date: Date;
+  amount: { toNumber(): number };
+  payee: string;
+  desc: string;
+  createdAt: Date;
+};
+
+type SerializableBankLine = {
+  id: string;
+  orgId: string;
+  date: string;
+  amount: number;
+  payee: string;
+  desc: string;
+  createdAt: string;
+};
+
+type SerializableUser = {
+  email: string;
+  orgId: string;
+  createdAt: string;
+};
+
+const envFiles = [
+  path.resolve(process.cwd(), "../../.env"),
+  path.resolve(process.cwd(), ".env"),
+];
+for (const file of envFiles) {
+  dotenv.config({ path: file });
+}
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  PORT: z.coerce.number().int().positive().default(3000),
+  HOST: z.string().optional(),
+});
+
+const env = envSchema.parse(process.env);
+
+const serializeBankLine = (line: RawBankLine): SerializableBankLine => ({
+  id: line.id,
+  orgId: line.orgId,
+  date: line.date.toISOString(),
+  createdAt: line.createdAt.toISOString(),
+  amount: line.amount.toNumber(),
+  payee: line.payee,
+  desc: line.desc,
+});
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
-
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
-// List users (email + org)
 app.get("/users", async () => {
-  const users = await prisma.user.findMany({
+  const users = (await prisma.user.findMany({
     select: { email: true, orgId: true, createdAt: true },
     orderBy: { createdAt: "desc" },
-  });
-  return { users };
+  })) as Array<{ email: string; orgId: string; createdAt: Date }>;
+
+  const serialized: SerializableUser[] = users.map((user) => ({
+    email: user.email,
+    orgId: user.orgId,
+    createdAt: user.createdAt.toISOString(),
+  }));
+
+  return { users: serialized };
 });
 
-// List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
-  const lines = await prisma.bankLine.findMany({
+app.get("/bank-lines", async (request) => {
+  const querySchema = z.object({
+    take: z.coerce.number().int().positive().max(200).default(20),
+  });
+  const query = querySchema.parse(request.query);
+
+  const lines = (await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
+    take: query.take,
+  })) as RawBankLine[];
+
+  return { lines: lines.map(serializeBankLine) };
+});
+
+app.post("/bank-lines", async (request, reply) => {
+  const bodySchema = z.object({
+    orgId: z.string().min(1),
+    date: z.string().transform((value) => new Date(value)),
+    amount: z.coerce.number(),
+    payee: z.string().min(1),
+    desc: z.string().min(1),
   });
-  return { lines };
+
+  const body = bodySchema.parse(request.body);
+
+  const created = (await prisma.bankLine.create({
+    data: {
+      orgId: body.orgId,
+      date: body.date,
+      amount: body.amount,
+      payee: body.payee,
+      desc: body.desc,
+    },
+  })) as RawBankLine;
+
+  return reply.code(201).send(serializeBankLine(created));
 });
 
-// Create a bank line
-app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
-  }
-});
+await seedDemoData();
 
-// Print routes so we can SEE POST /bank-lines is registered
-app.ready(() => {
+const port = env.PORT;
+const host = env.HOST ?? "0.0.0.0";
+
+app.addHook("onReady", () => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
-const host = "0.0.0.0";
-
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
-});
-
+app
+  .listen({ port, host })
+  .then(() => {
+    app.log.info(
+      { port, host, databaseUrl: env.DATABASE_URL?.replace(/:[^:@]*@/, ":***@") },
+      "api-gateway listening",
+    );
+  })
+  .catch((error) => {
+    app.log.error(error, "failed to start api-gateway");
+    process.exitCode = 1;
+  });
