@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "typeRoots": ["./types", "./node_modules/@types"],
     "paths": {
       "@apgms/shared/*": ["shared/src/*"]
     }
