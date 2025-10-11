@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: apgms-postgres
+    environment:
+      POSTGRES_USER: apgms
+      POSTGRES_PASSWORD: apgms
+      POSTGRES_DB: apgms_dev
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - apgms-pgdata:/var/lib/postgresql/data
+volumes:
+  apgms-pgdata:
