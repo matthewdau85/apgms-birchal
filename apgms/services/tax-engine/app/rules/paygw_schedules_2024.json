@@ -1,0 +1,13 @@
+[
+  {
+    "version": "PAYGW-2024.1",
+    "effective_from": "2024-01-01",
+    "effective_to": null,
+    "thresholds": {
+      "weekly": [
+        { "min": 0, "max": 87000, "rate": 0.19 },
+        { "min": 87000, "max": 180000, "rate": 0.325 }
+      ]
+    }
+  }
+]
