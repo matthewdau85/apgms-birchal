@@ -1,0 +1,13 @@
+{
+  "alerts": [
+    {
+      "id": "ops-alert-paygw-2024-07",
+      "type": "PAYGW_BRACKETS",
+      "rule_pack_version": "2024.1",
+      "ruleset_id": "paygw-2024-07",
+      "requires_sign_off": true,
+      "status": "pending",
+      "approver": null
+    }
+  ]
+}
