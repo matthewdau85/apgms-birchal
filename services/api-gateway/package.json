@@ -5,16 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "build": "tsc -p ../../tsconfig.json && node dist/index.js"
-  },
-  "devDependencies": {
-    "@types/node": "^24.7.1",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@fastify/cors": "^11.1.0",
-    "dotenv": "^17.2.3",
-    "fastify": "^5.6.1"
+    "fastify": "^4.26.2",
+    "pino": "^9.3.2",
+    "@apgms/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.0"
   }
 }
