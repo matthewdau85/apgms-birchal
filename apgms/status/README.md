@@ -1,1 +1,1 @@
-﻿# Status site
+# Status site
