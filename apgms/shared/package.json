@@ -3,9 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./db": "./dist/db.js",
+    "./*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": ["dist/*"]
+    }
+  },
   "scripts": {
-    "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
-    "build": "echo building shared"
+    "build": "tsc -p tsconfig.json",
+    "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "6.17.1"
