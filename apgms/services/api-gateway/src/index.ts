@@ -1,15 +1,10 @@
-﻿import path from "node:path";
-import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-
-// Load repo-root .env from src/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+
+import { prisma } from "./db";
+
+dotenv.config();
 
 const app = Fastify({ logger: true });
 
@@ -31,7 +26,7 @@ app.get("/users", async () => {
 
 // List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+  const take = Number((req.query as Record<string, unknown>).take ?? 20);
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
@@ -77,4 +72,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
