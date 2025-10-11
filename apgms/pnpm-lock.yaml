@@ -36,12 +36,12 @@ importers:
 
   services/api-gateway:
     dependencies:
-      '@apgms/shared':
-        specifier: workspace:*
-        version: link:../../shared
       '@fastify/cors':
         specifier: ^11.1.0
         version: 11.1.0
+      '@prisma/client':
+        specifier: 6.17.1
+        version: 6.17.1(prisma@6.17.1(typescript@5.9.3))(typescript@5.9.3)
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
@@ -55,6 +55,9 @@ importers:
       '@types/node':
         specifier: ^24.7.1
         version: 24.7.1
+      prisma:
+        specifier: 6.17.1
+        version: 6.17.1(typescript@5.9.3)
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
