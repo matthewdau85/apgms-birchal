@@ -34,3 +34,51 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  actor        String
+  action       String
+  entityType   String?
+  entityId     String?
+  occurredAt   DateTime @default(now())
+  metadata     Json?
+  digestBefore String?
+  digestAfter  String   @unique
+}
+
+model ManifestEntry {
+  id         String   @id @default(cuid())
+  orgId      String
+  period     String
+  sequence   Int
+  payload    Json
+  prevDigest String?
+  digest     String   @unique
+  createdAt  DateTime @default(now())
+  rptTokens  RptToken[]
+
+  @@unique([orgId, period, sequence])
+}
+
+model RptToken {
+  id            String    @id @default(cuid())
+  orgId         String
+  period        String
+  manifest      ManifestEntry @relation(fields: [manifestId], references: [id], onDelete: Restrict)
+  manifestId    String
+  token         String    @unique
+  status        RptStatus @default(ACTIVE)
+  mintedAt      DateTime  @default(now())
+  mintedBy      String
+  revokedAt     DateTime?
+  revokedBy     String?
+  revokedReason String?
+
+  @@index([orgId, period])
+}
+
+enum RptStatus {
+  ACTIVE
+  REVOKED
+}
