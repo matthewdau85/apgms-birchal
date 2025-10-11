@@ -1,0 +1,4 @@
+[
+  { "code": "ADJ", "description": "Standard GST adjustment" },
+  { "code": "FRE", "description": "GST free supplies" }
+]

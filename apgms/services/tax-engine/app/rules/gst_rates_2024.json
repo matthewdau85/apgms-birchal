@@ -1,0 +1,11 @@
+{
+  "rates": [
+    {
+      "version": "GST-2024.1",
+      "effective_from": "2024-01-01",
+      "effective_to": null,
+      "standard_rate": 0.1,
+      "reduced_rates": []
+    }
+  ]
+}

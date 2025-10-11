@@ -1,36 +1,495 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+enum MembershipRole {
+  OWNER
+  ADMIN
+  STAFF
+  ACCOUNTANT
+}
+
+enum TaxRegistrationType {
+  GST
+  PAYGW
+}
+
+enum TaxPeriodStatus {
+  OPEN
+  LOCKED
+  LODGED
+  AMENDED
+}
+
+enum AccountingMethod {
+  CASH
+  ACCRUAL
+}
+
+enum BasCycle {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
+}
+
+enum FinanceAccountType {
+  OPERATING
+  PAYGW_WALLET
+  GST_WALLET
+  OTHER
+}
+
+enum MandateStatus {
+  REQUESTED
+  ACTIVE
+  PAUSED
+  REVOKED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING_CAPTURE
+  SETTLED
+  FAILED
+  RECONCILED
+}
+
+enum PaymentEventType {
+  STATUS_CHANGED
+  CAPTURED
+  REFUNDED
+  NOTE
+}
+
+enum GstTaxCode {
+  TX
+  FRE
+  NT
+  INP
+  ADJ
+}
+
+enum EvidenceScope {
+  GST
+  PAYGW
+  BAS
+}
+
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id               String              @id @default(cuid())
+  name             String
+  abn              String?
+  timezone         String              @default("Australia/Brisbane")
+  accountingMethod AccountingMethod    @default(ACCRUAL)
+  basCycle         BasCycle            @default(QUARTERLY)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  users            User[]
+  memberships      Membership[]
+  apiKeys          ApiKey[]
+  bankLines        BankLine[]
+  taxRegistrations TaxRegistration[]
+  taxPeriods       TaxPeriod[]
+  financeAccounts  FinanceAccount[]
+  mandates         FinanceMandate[]
+  payments         Payment[]
+  bankImports      BankImport[]
+  reconMatches     ReconMatch[]
+  gstSupplies      GstSupply[]
+  gstPurchases     GstPurchase[]
+  gstAdjustments   GstAdjustment[]
+  gstBasCalcs      GstBasCalc[]
+  paygwEmployees   PaygwEmployee[]
+  paygwPayEvents   PaygwPayEvent[]
+  paygwCalcs       PaygwWithholdingCalc[]
+  auditEvents      AuditEvent[]
+  auditRpts        AuditRpt[]
+  adminDocuments   AdminDocument[]
+  ingestionJobs    AdminIngestionJob[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id          String        @id @default(cuid())
+  email       String        @unique
+  password    String
+  name        String?
+  createdAt   DateTime      @default(now())
+  memberships Membership[]
+  auditEvents AuditEvent[]  @relation("UserAuditEvents")
+}
+
+model Membership {
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  org       Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
+  role      MembershipRole
+  invitedBy String?
+  createdAt DateTime       @default(now())
+
+  @@unique([userId, orgId])
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  label      String
+  hashedKey  String
+  scopes     String[]
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime?
+  lastUsedAt DateTime?
+}
+
+model TaxRegistration {
+  id            String               @id @default(cuid())
+  org           Org                  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  type          TaxRegistrationType
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  accountBsb    String?
+  accountNumber String?
+  status        String               @default("active")
+  createdAt     DateTime             @default(now())
+}
+
+model TaxPeriod {
+  id         String          @id @default(cuid())
+  org        Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  abn        String
+  label      String
+  status     TaxPeriodStatus @default(OPEN)
+  dueDate    DateTime
+  lockDate   DateTime?
+  lodgedAt   DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  gstCalcs   GstBasCalc?
+  paygwCalcs PaygwWithholdingCalc?
+  payments   Payment[]
+  supplies   GstSupply[]
+  purchases  GstPurchase[]
+  adjustments GstAdjustment[]
+  payEvents  PaygwPayEvent[]
+  auditRpts  AuditRpt[]
+  documents  AdminDocument[]
+}
+
+model TaxScheduleMeta {
+  id            String               @id @default(cuid())
+  registration  TaxRegistrationType
+  source        String
+  version       String
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  metadata      Json?
+  document      AdminDocument?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  documentId    String?
+  createdAt     DateTime             @default(now())
+}
+
+model FinanceAccount {
+  id             String             @id @default(cuid())
+  org            Org                @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  type           FinanceAccountType
+  displayName    String
+  institution    String?
+  bsb            String?
+  accountNumber  String?
+  oneWay         Boolean            @default(false)
+  balanceCents   Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  mandates       FinanceMandate[]
+  payments       Payment[]
+}
+
+model FinanceMandate {
+  id          String        @id @default(cuid())
+  org         Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  account     FinanceAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId   String
+  status      MandateStatus  @default(REQUESTED)
+  reference   String
+  createdAt   DateTime       @default(now())
+  activatedAt DateTime?
+  revokedAt   DateTime?
+  metadata    Json?
+  payments    Payment[]
+}
+
+model Payment {
+  id            String         @id @default(cuid())
+  org           Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  account       FinanceAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  accountId     String?
+  mandate       FinanceMandate? @relation(fields: [mandateId], references: [id], onDelete: SetNull)
+  mandateId     String?
+  period        TaxPeriod?     @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId      String?
+  amountCents   Int
+  currency      String         @default("AUD")
+  status        PaymentStatus  @default(CREATED)
+  reference     String
+  description   String?
+  initiatedAt   DateTime       @default(now())
+  settledAt     DateTime?
+  failedAt      DateTime?
+  reconciledAt  DateTime?
+  events        PaymentEvent[]
+  reconMatches  ReconMatch[]
+}
+
+model PaymentEvent {
+  id         String            @id @default(cuid())
+  payment    Payment           @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId  String
+  type       PaymentEventType
+  detail     Json?
+  actorId    String?
+  createdAt  DateTime          @default(now())
+}
+
+model IdempotencyKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  scope       String
+  requestHash String
+  response    Json?
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+  orgId       String?
+}
+
+model BankImport {
+  id          String    @id @default(cuid())
+  org         Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  filename    String
+  format      String
+  importedBy  String?
+  importedAt  DateTime  @default(now())
+  fileHash    String?
+  bankLines   BankLine[]
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  id         String      @id @default(cuid())
+  org        Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  import     BankImport? @relation(fields: [importId], references: [id], onDelete: SetNull)
+  importId   String?
+  date       DateTime
+  amount     Decimal
+  payee      String
+  desc       String
+  reference  String?
+  status     String      @default("unmatched")
+  externalId String?
+  createdAt  DateTime    @default(now())
+  matches    ReconMatch[]
+}
+
+model ReconMatch {
+  id          String     @id @default(cuid())
+  org         Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  bankLine    BankLine   @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId  String
+  payment     Payment?   @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  paymentId   String?
+  confidence  Decimal    @default(0)
+  status      String     @default("needs_review")
+  note        String?
+  createdAt   DateTime   @default(now())
+  resolvedAt  DateTime?
+  exceptions  ReconException[]
+}
+
+model ReconException {
+  id         String     @id @default(cuid())
+  match      ReconMatch @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId    String
+  type       String
+  detail     Json?
+  createdAt  DateTime   @default(now())
+}
+
+model GstSupply {
+  id          String      @id @default(cuid())
+  org         Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  period      TaxPeriod?  @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId    String?
+  documentRef String?
+  description String?
+  supplyDate  DateTime
+  amountCents Int
+  gstCents    Int
+  taxCode     GstTaxCode
+  createdAt   DateTime    @default(now())
+}
+
+model GstPurchase {
+  id          String      @id @default(cuid())
+  org         Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  period      TaxPeriod?  @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId    String?
+  documentRef String?
+  description String?
+  purchaseDate DateTime
+  amountCents Int
+  gstCents    Int
+  taxCode     GstTaxCode
+  createdAt   DateTime    @default(now())
+}
+
+model GstAdjustment {
+  id          String      @id @default(cuid())
+  org         Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  period      TaxPeriod?  @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId    String?
+  description String?
+  amountCents Int
+  gstCents    Int
+  taxCode     GstTaxCode  @default(ADJ)
+  createdAt   DateTime    @default(now())
+}
+
+model GstBasCalc {
+  id            String    @id @default(cuid())
+  org           Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  period        TaxPeriod @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  periodId      String
+  g1            Int
+  g2            Int
+  g3            Int
+  g10           Int
+  g11           Int
+  label1A       Int
+  label1B       Int
+  netPayable    Int
+  calculatedAt  DateTime  @default(now())
+  source        Json?
+
+  @@unique([periodId])
+}
+
+model PaygwEmployee {
+  id                 String     @id @default(cuid())
+  org                Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String
+  firstName          String
+  lastName           String
+  tfn                String?
+  taxFreeThreshold   Boolean    @default(true)
+  stsl               Boolean    @default(false)
+  createdAt          DateTime   @default(now())
+  payEvents          PaygwPayEvent[]
+}
+
+model PaygwPayEvent {
+  id            String     @id @default(cuid())
+  org           Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  employee      PaygwEmployee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  employeeId    String?
+  period        TaxPeriod? @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId      String?
+  payDate       DateTime
+  grossCents    Int
+  withheldCents Int
+  stslCents     Int?       @default(0)
+  metadata      Json?
+  createdAt     DateTime   @default(now())
+}
+
+model PaygwWithholdingCalc {
+  id           String     @id @default(cuid())
+  org          Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  period       TaxPeriod  @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  periodId     String
+  w1           Int
+  w2           Int
+  calculatedAt DateTime   @default(now())
+  source       Json?
+
+  @@unique([periodId])
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  org        Org?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId      String?
+  actor      User?    @relation("UserAuditEvents", fields: [actorId], references: [id], onDelete: SetNull)
+  actorId    String?
+  entityType String
+  entityId   String
+  action     String
+  beforeHash String?
+  afterHash  String?
+  ip         String?
+  ua         String?
+  createdAt  DateTime @default(now())
+}
+
+model AuditRpt {
+  id             String        @id @default(cuid())
+  tokenId        String        @unique
+  org            Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  period         TaxPeriod     @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  periodId       String
+  scope          EvidenceScope
+  evidenceDigest String
+  createdBy      String?
+  createdAt      DateTime      @default(now())
+  expiresAt      DateTime?
+  revokedAt      DateTime?
+}
+
+model AdminDocument {
+  id          String        @id @default(cuid())
+  org         Org?          @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId       String?
+  period      TaxPeriod?     @relation(fields: [periodId], references: [id], onDelete: SetNull)
+  periodId    String?
+  storagePath String
+  type        String
+  source      String
+  version     String?
+  uploadedBy  String?
+  uploadedAt  DateTime       @default(now())
+  hash        String?
+  metadata    Json?
+  schedules   TaxScheduleMeta[]
+}
+
+model AdminIngestionJob {
+  id          String        @id @default(cuid())
+  org         Org?          @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId       String?
+  document    AdminDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  documentId  String?
+  status      String        @default("pending")
+  createdAt   DateTime      @default(now())
+  completedAt DateTime?
+  error       String?
 }
