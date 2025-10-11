@@ -8,6 +8,12 @@
     "build": "echo building shared"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/core": "^1.23.0",
+    "@opentelemetry/resources": "^1.23.0",
+    "@opentelemetry/sdk-trace-base": "^1.23.0",
+    "@opentelemetry/sdk-trace-node": "^1.23.0",
+    "@opentelemetry/semantic-conventions": "^1.23.0",
     "@prisma/client": "6.17.1"
   },
   "devDependencies": {

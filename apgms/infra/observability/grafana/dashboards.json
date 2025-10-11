@@ -1,1 +1,4 @@
-{}
+{
+  "api-http-latency": "./http-latency.json",
+  "queue-throughput": "./queue-throughput.json"
+}
