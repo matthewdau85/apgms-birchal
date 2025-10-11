@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "tax-engine"
+version = "0.1.0"
+description = "APGMS tax engine service with GST, PAYGW, and BAS calculations"
+authors = ["APGMS Automation <automation@example.com>"]
+packages = [{ include = "tax_engine" }]
+include = [
+  { path = "rules/*.json", format = "sdist" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.111.0"
+uvicorn = { extras = ["standard"], version = "^0.30.0" }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+httpx = "^0.27.0"
+ruff = "^0.4.8"
+
+[tool.poetry.scripts]
+tax-engine-serve = "tax_engine.app:main"
+tax-engine-export-openapi = "tax_engine.openapi:export_cli"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+  "E",
+  "F",
+  "B",
+  "I"
+]

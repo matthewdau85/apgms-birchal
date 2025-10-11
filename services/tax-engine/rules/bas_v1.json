@@ -1,0 +1,20 @@
+{
+  "version": "2024-07-01",
+  "formulas": {
+    "gst_payable": {
+      "gst_collected": 1.0,
+      "gst_paid": -1.0
+    },
+    "paygw_payable": {
+      "paygw_withheld": 1.0,
+      "paygw_credits": -1.0
+    },
+    "net_payable": {
+      "gst_collected": 1.0,
+      "gst_paid": -1.0,
+      "paygw_withheld": 1.0,
+      "paygw_credits": -1.0,
+      "fuel_tax_credit": -1.0
+    }
+  }
+}
