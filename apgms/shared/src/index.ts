@@ -1,1 +1,1 @@
-﻿// shared
+export { prisma } from "./db.js";
