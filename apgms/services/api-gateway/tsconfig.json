@@ -9,6 +9,7 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
+      "@apgms/shared": ["shared/src/index.ts"],
       "@apgms/shared/*": ["shared/src/*"]
     }
   },
