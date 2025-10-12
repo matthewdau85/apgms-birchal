@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "labels": [
+    {
+      "code": "G1",
+      "description": "Total sales",
+      "source": "gst",
+      "field": "totalSales"
+    },
+    {
+      "code": "1A",
+      "description": "GST on sales",
+      "source": "gst",
+      "field": "gstOnSales"
+    },
+    {
+      "code": "1B",
+      "description": "GST on purchases",
+      "source": "gst",
+      "field": "gstOnPurchases"
+    },
+    {
+      "code": "W1",
+      "description": "Total salary and wages",
+      "source": "paygw",
+      "field": "totalWages"
+    },
+    {
+      "code": "W2",
+      "description": "Amounts withheld from payments",
+      "source": "paygw",
+      "field": "taxWithheld"
+    }
+  ]
+}
