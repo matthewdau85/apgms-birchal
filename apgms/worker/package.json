@@ -1,1 +1,11 @@
-{"name":"@apgms/worker","version":"0.1.0","type":"module","main":"dist/index.js","scripts":{"build":"echo build worker","test":"echo test worker"}}
+{
+  "name": "@apgms/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "echo build worker",
+    "test": "tsx --test test/**/*.test.ts",
+    "ingest:ato-tax": "tsx src/ingestion/atoTaxIngestion.ts"
+  }
+}

@@ -1,0 +1,64 @@
+name: Sync ATO tax tables
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run ATO ingestion
+        run: pnpm --filter @apgms/worker ingest:ato-tax
+      - name: Run worker tests
+        run: pnpm --filter @apgms/worker test
+      - name: Capture summary
+        id: summary
+        run: |
+          if [ -f worker/generated/ato-tax-ingestion-summary.md ]; then
+            SUMMARY=$(cat worker/generated/ato-tax-ingestion-summary.md)
+          else
+            SUMMARY="No changes detected."
+          fi
+          SUMMARY="${SUMMARY//'%'/'%25'}"
+          SUMMARY="${SUMMARY//$'\n'/'%0A'}"
+          SUMMARY="${SUMMARY//$'\r'/'%0D'}"
+          echo "body=$SUMMARY" >> "$GITHUB_OUTPUT"
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Create pull request
+        if: steps.changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: chore: sync ATO tax tables
+          branch: chore/auto-update-ato-tax
+          title: chore: sync ATO tax tables
+          body: ${{ steps.summary.outputs.body }}
+          add-paths: |
+            worker/generated/**
+            worker/state/**
+            worker/test/fixtures/**
+            worker/test/golden/**
