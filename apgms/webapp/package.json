@@ -1,1 +1,17 @@
-{"name":"@apgms/webapp","version":"0.1.0","private":true,"scripts":{"build":"echo build webapp","test":"echo test webapp"}}
+{
+  "name": "@apgms/webapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "echo build webapp",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@apgms/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^2.0.5",
+    "@vitest/coverage-v8": "^2.0.5"
+  }
+}
