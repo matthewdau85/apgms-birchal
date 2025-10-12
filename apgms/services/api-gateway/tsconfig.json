@@ -9,8 +9,9 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "supertest": ["services/api-gateway/test/utils/supertest.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }
