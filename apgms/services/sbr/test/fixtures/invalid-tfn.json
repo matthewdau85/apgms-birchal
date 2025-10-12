@@ -1,0 +1,44 @@
+{
+  "payEvent": {
+    "bmsIdentifier": "BMS-123456",
+    "paymentDate": "2024-07-31",
+    "softwareInformation": {
+      "productId": "AcmeBMS",
+      "productVersion": "2.5.1",
+      "serviceProviderAbn": "12345678901"
+    },
+    "employer": {
+      "name": "Example Pty Ltd",
+      "abn": "12345678901",
+      "branchNumber": "001",
+      "contact": {
+        "name": "Casey Payroll",
+        "phone": "+61123456789",
+        "email": "payroll@example.com"
+      }
+    },
+    "employees": [
+      {
+        "employeeId": "EMP001",
+        "taxFileNumber": "TFN12345",
+        "familyName": "Nguyen",
+        "givenName": "Jordan",
+        "dateOfBirth": "1990-01-15",
+        "taxTreatmentCategory": "RT",
+        "employmentBasis": "FullTime",
+        "residencyStatus": "resident",
+        "payments": [
+          {
+            "type": "SALARY",
+            "grossAmount": 3500.5,
+            "taxWithheld": 700.1,
+            "payPeriodStart": "2024-07-01",
+            "payPeriodEnd": "2024-07-31",
+            "yearToDateGross": 3500.5,
+            "yearToDateTaxWithheld": 700.1
+          }
+        ]
+      }
+    ]
+  }
+}
