@@ -65,6 +65,107 @@ app.post("/bank-lines", async (req, rep) => {
   }
 });
 
+const bankLineUpdatableFields = [
+  "date",
+  "amount",
+  "payee",
+  "desc",
+  "currency",
+  "source",
+  "externalId",
+  "cleared",
+  "notes",
+] as const;
+
+// Update a bank line
+app.patch("/bank-lines/:id", async (req, rep) => {
+  try {
+    const { id } = req.params as { id: string };
+    const body = (req.body ?? {}) as Record<string, unknown> & { orgId?: string };
+
+    const existing = await prisma.bankLine.findUnique({ where: { id } });
+    if (!existing) {
+      return rep.code(404).send({ error: "not_found" });
+    }
+
+    if (!body.orgId) {
+      return rep.code(400).send({ error: "org_required" });
+    }
+
+    if (body.orgId !== existing.orgId) {
+      return rep.code(404).send({ error: "not_found" });
+    }
+
+    const data: Record<string, unknown> = {};
+    for (const field of bankLineUpdatableFields) {
+      if (Object.prototype.hasOwnProperty.call(body, field)) {
+        const value = body[field];
+        if (value === undefined) {
+          continue;
+        }
+        if (field === "date") {
+          const parsed = new Date(value as string);
+          if (Number.isNaN(parsed.getTime())) {
+            return rep.code(400).send({ error: "invalid_date" });
+          }
+          data.date = parsed;
+          continue;
+        }
+        if (field === "amount") {
+          data.amount = value as any;
+          continue;
+        }
+        data[field] = value;
+      }
+    }
+
+    if (Object.keys(data).length === 0) {
+      return rep.code(400).send({ error: "no_updates" });
+    }
+
+    const updated = await prisma.bankLine.update({
+      where: { id },
+      data: data as any,
+    });
+
+    return updated;
+  } catch (e) {
+    req.log.error(e);
+    return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+// Delete a bank line
+app.delete("/bank-lines/:id", async (req, rep) => {
+  try {
+    const { id } = req.params as { id: string };
+    const query = (req.query ?? {}) as { orgId?: string };
+    const body = (req.body ?? {}) as { orgId?: string };
+
+    const existing = await prisma.bankLine.findUnique({ where: { id } });
+    if (!existing) {
+      return rep.code(404).send({ error: "not_found" });
+    }
+
+    const orgId = body.orgId ?? query.orgId;
+
+    if (!orgId) {
+      return rep.code(400).send({ error: "org_required" });
+    }
+
+    if (orgId !== existing.orgId) {
+      return rep.code(404).send({ error: "not_found" });
+    }
+
+    await prisma.bankLine.delete({ where: { id } });
+
+    return { ok: true };
+  } catch (e) {
+    req.log.error(e);
+    return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
   app.log.info(app.printRoutes());
