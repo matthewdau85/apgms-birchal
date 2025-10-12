@@ -7,6 +7,10 @@
     "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
     "build": "echo building shared"
   },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "./src/index.ts",
   "dependencies": {
     "@prisma/client": "6.17.1"
   },

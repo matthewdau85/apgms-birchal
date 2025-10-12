@@ -9,7 +9,18 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { Queue } from "bullmq";
+import { prisma } from "@apgms/shared";
+
+const BANK_FEED_QUEUE = "bank-feed:poll";
+
+const redisConnection = {
+  connection: {
+    connectionString: process.env.REDIS_URL ?? "redis://127.0.0.1:6379",
+  },
+};
+
+const bankFeedQueue = new Queue(BANK_FEED_QUEUE, redisConnection);
 
 const app = Fastify({ logger: true });
 
@@ -48,10 +59,12 @@ app.post("/bank-lines", async (req, rep) => {
       amount: number | string;
       payee: string;
       desc: string;
+      externalId?: string;
     };
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
+        externalId: body.externalId ?? undefined,
         date: new Date(body.date),
         amount: body.amount as any,
         payee: body.payee,
@@ -63,6 +76,47 @@ app.post("/bank-lines", async (req, rep) => {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
   }
+});
+
+app.post("/jobs/poll-now", async (req, rep) => {
+  const orgId = (req.query as Record<string, string | undefined>).orgId;
+  if (!orgId) {
+    return rep.code(400).send({ error: "orgId_required" });
+  }
+
+  const orgExists = await prisma.org.findUnique({ select: { id: true }, where: { id: orgId } });
+  if (!orgExists) {
+    return rep.code(404).send({ error: "org_not_found" });
+  }
+
+  try {
+    const job = await bankFeedQueue.add(
+      "poll",
+      { orgId },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 1000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+
+    return { jobId: job.id, state: "queued" };
+  } catch (err) {
+    req.log.error({ err, orgId }, "failed_to_enqueue_poll_job");
+    return rep.code(500).send({ error: "queue_failure" });
+  }
+});
+
+app.get("/jobs/status", async () => {
+  const lastRun = await prisma.bankFeedJobRun.findFirst({
+    orderBy: { createdAt: "desc" },
+  });
+
+  return { queue: BANK_FEED_QUEUE, lastRun };
 });
 
 // Print routes so we can SEE POST /bank-lines is registered

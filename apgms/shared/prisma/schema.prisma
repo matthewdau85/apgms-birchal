@@ -13,6 +13,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  bankFeedRuns BankFeedJobRun[]
 }
 
 model User {
@@ -28,9 +29,27 @@ model BankLine {
   id        String   @id @default(cuid())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
+  externalId String   @default(cuid())
   date      DateTime
   amount    Decimal
   payee     String
   desc      String
   createdAt DateTime @default(now())
+
+  @@unique([orgId, externalId])
+}
+
+model BankFeedJobRun {
+  id             String             @id @default(cuid())
+  org            Org                @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  status         BankFeedJobStatus
+  processedCount Int
+  error          String?
+  createdAt      DateTime           @default(now())
+}
+
+enum BankFeedJobStatus {
+  success
+  failed
 }
