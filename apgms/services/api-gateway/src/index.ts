@@ -1,80 +1,63 @@
-﻿import path from "node:path";
-import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
-
-// Load repo-root .env from src/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import { prisma } from '../../../shared/src/db';
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.addHook('onRequest', async (_request, reply) => {
+  reply.type('application/json');
+});
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+app.get('/health', async () => ({ ok: true }));
 
-// List users (email + org)
-app.get("/users", async () => {
-  const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
+app.get('/bank-lines', async () => {
+  const rows = await prisma.bankLine.findMany({ orderBy: { createdAt: 'desc' } });
+  return rows;
+});
+
+app.post('/bank-lines', async (request, reply) => {
+  const body: any = request.body ?? {};
+  const row = await prisma.bankLine.create({
+    data: {
+      amount: body.amount ?? 0,
+      description: body.description ?? 'n/a',
+      txDate: body.txDate ? new Date(body.txDate) : new Date(),
+    },
   });
-  return { users };
-});
-
-// List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
-  const lines = await prisma.bankLine.findMany({
-    orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
-  });
-  return { lines };
-});
-
-// Create a bank line
-app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
-  }
-});
-
-// Print routes so we can SEE POST /bank-lines is registered
-app.ready(() => {
-  app.log.info(app.printRoutes());
+  reply.code(201);
+  return row;
 });
 
 const port = Number(process.env.PORT ?? 3000);
-const host = "0.0.0.0";
+const host = '0.0.0.0';
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
+const start = async () => {
+  try {
+    await app.listen({ port, host });
+    app.log.info(`api-gateway listening on ${host}:${port}`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+};
+
+const closeWithGrace = async (signal: NodeJS.Signals) => {
+  app.log.info({ signal }, 'closing fastify server');
+  try {
+    await app.close();
+  } catch (err) {
+    app.log.error(err);
+  } finally {
+    process.exit(0);
+  }
+};
+
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+  process.on(signal, () => {
+    void closeWithGrace(signal);
+  });
 });
 
+start();
