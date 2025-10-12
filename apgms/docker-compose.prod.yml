@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: apgms
+      POSTGRES_PASSWORD: apgms
+      POSTGRES_DB: apgms
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apgms -d apgms"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  prisma-migrate:
+    image: apgms/api-gateway:latest
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    command: [
+      "pnpm",
+      "--filter",
+      "@apgms/shared",
+      "exec",
+      "prisma",
+      "migrate",
+      "deploy",
+      "--schema",
+      "shared/prisma/schema.prisma"
+    ]
+    environment:
+      DATABASE_URL: postgresql://apgms:apgms@postgres:5432/apgms
+      SHADOW_DATABASE_URL: postgresql://apgms:apgms@postgres:5432/apgms
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api-gateway:
+    image: apgms/api-gateway:latest
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://apgms:apgms@postgres:5432/apgms
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      prisma-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -qO- http://localhost:3000/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  tax-engine:
+    image: apgms/tax-engine:latest
+    build:
+      context: .
+      dockerfile: services/tax-engine/Dockerfile
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c 'import urllib.request; urllib.request.urlopen("http://localhost:8000/health")'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_healthy
