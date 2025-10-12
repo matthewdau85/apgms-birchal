@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "effective_from": "2024-03-01",
+    "effective_to": "2024-06-30",
+    "schema_version": "1.0.0",
+    "source": "ato.gov.au",
+    "variant": "reduced"
+  },
+  "data": {
+    "rate": 0.05,
+    "description": "Reduced GST rate for specific program"
+  }
+}

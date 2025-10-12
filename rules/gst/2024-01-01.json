@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "effective_from": "2024-01-01",
+    "schema_version": "1.0.0",
+    "source": "ato.gov.au"
+  },
+  "data": {
+    "rate": 0.1,
+    "description": "Standard GST rate"
+  }
+}
