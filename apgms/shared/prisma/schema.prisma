@@ -30,6 +30,7 @@ model BankLine {
   orgId     String
   date      DateTime
   amount    Decimal
+  category  String   @default("Uncategorized")
   payee     String
   desc      String
   createdAt DateTime @default(now())
