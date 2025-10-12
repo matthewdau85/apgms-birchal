@@ -32,5 +32,24 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  category  String?  @db.VarChar(64)
   createdAt DateTime @default(now())
+
+  @@index([category])
+}
+
+model Rule {
+  id           String   @id @default(cuid())
+  org          Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  name         String
+  payeeRegex   String?
+  minAmount    Decimal?
+  maxAmount    Decimal?
+  containsDesc String?
+  setCategory  String   @db.VarChar(64)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([orgId])
 }
