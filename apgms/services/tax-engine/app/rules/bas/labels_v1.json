@@ -1,0 +1,37 @@
+{
+  "version": "1.0.0",
+  "labels": {
+    "G1": {
+      "description": "Total sales for the period",
+      "sources": [
+        {"source": "gst", "path": "sales.taxable"},
+        {"source": "gst", "path": "sales.export"},
+        {"source": "gst", "path": "sales.other"}
+      ]
+    },
+    "1A": {
+      "description": "GST on sales",
+      "sources": [
+        {"source": "gst", "path": "gst.collected"}
+      ]
+    },
+    "1B": {
+      "description": "GST on purchases",
+      "sources": [
+        {"source": "gst", "path": "gst.credits"}
+      ]
+    },
+    "W1": {
+      "description": "Total salary and wages",
+      "sources": [
+        {"source": "paygw", "path": "wages.gross"}
+      ]
+    },
+    "W2": {
+      "description": "Amounts withheld from payments shown at W1",
+      "sources": [
+        {"source": "paygw", "path": "wages.withheld"}
+      ]
+    }
+  }
+}

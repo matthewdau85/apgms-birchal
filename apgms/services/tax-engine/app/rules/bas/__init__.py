@@ -1,0 +1,1 @@
+"""BAS label mapping rules."""
