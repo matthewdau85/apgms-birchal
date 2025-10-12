@@ -11,9 +11,11 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { errorHandlerPlugin } from "./plugins/error-handler";
 
 const app = Fastify({ logger: true });
 
+await app.register(errorHandlerPlugin);
 await app.register(cors, { origin: true });
 
 // Quick sanity log so you can verify the DSN being used
@@ -42,28 +44,23 @@ app.get("/bank-lines", async (req) => {
 
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
-  }
+  const body = req.body as {
+    orgId: string;
+    date: string;
+    amount: number | string;
+    payee: string;
+    desc: string;
+  };
+  const created = await prisma.bankLine.create({
+    data: {
+      orgId: body.orgId,
+      date: new Date(body.date),
+      amount: body.amount as any,
+      payee: body.payee,
+      desc: body.desc,
+    },
+  });
+  return rep.code(201).send(created);
 });
 
 // Print all routes once ready (to verify POST exists)
