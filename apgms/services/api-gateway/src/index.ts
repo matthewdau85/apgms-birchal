@@ -1,26 +1,19 @@
-﻿import path from "node:path";
-import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
-
-// Load repo-root .env from src/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
-import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import Fastify from "fastify";
 
-const app = Fastify({ logger: true });
+import { env, prisma } from "@apgms/shared";
 
-await app.register(cors, { origin: true });
+const app = Fastify({
+  logger: { level: env.LOG_LEVEL },
+});
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+const corsOrigin = env.CORS_ORIGIN ?? true;
+await app.register(cors, { origin: corsOrigin });
+
+app.log.info({ databaseUrlConfigured: Boolean(env.DATABASE_URL) }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
-// List users (email + org)
 app.get("/users", async () => {
   const users = await prisma.user.findMany({
     select: { email: true, orgId: true, createdAt: true },
@@ -29,7 +22,6 @@ app.get("/users", async () => {
   return { users };
 });
 
-// List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
   const take = Number((req.query as any).take ?? 20);
   const lines = await prisma.bankLine.findMany({
@@ -39,7 +31,6 @@ app.get("/bank-lines", async (req) => {
   return { lines };
 });
 
-// Create a bank line
 app.post("/bank-lines", async (req, rep) => {
   try {
     const body = req.body as {
@@ -65,16 +56,14 @@ app.post("/bank-lines", async (req, rep) => {
   }
 });
 
-// Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
+const port = env.PORT;
 const host = "0.0.0.0";
 
 app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-

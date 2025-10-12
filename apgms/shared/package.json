@@ -8,7 +8,9 @@
     "build": "echo building shared"
   },
   "dependencies": {
-    "@prisma/client": "6.17.1"
+    "@prisma/client": "6.17.1",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "prisma": "6.17.1",
