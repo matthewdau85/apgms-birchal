@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "domain": "gst",
+    "effective_from": "2023-07-01",
+    "effective_to": "2024-06-30",
+    "source": "ATO GST reference 2023",
+    "schema_version": "1.0.0"
+  },
+  "rules": {
+    "rate": 0.1,
+    "low_value_threshold": 75000
+  }
+}
