@@ -10,58 +10,101 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { maskIdentifier } from "../../../shared/src/utils/mask";
+import { filterRestrictedLogFields } from "./logging";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+// sanity log: confirm env is loaded without leaking configuration
+app.log.info(filterRestrictedLogFields({
+  route: "startup",
+  hasDatabaseUrl: Boolean(process.env.DATABASE_URL),
+}), "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
 // List users (email + org)
-app.get("/users", async () => {
+app.get("/users", async (request) => {
   const users = await prisma.user.findMany({
     select: { email: true, orgId: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
+  request.log.info(
+    filterRestrictedLogFields({
+      route: "/users",
+      userCount: users.length,
+    }),
+    "listed users",
+  );
   return { users };
 });
 
 // List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+app.get("/bank-lines", async (request) => {
+  const take = Number((request.query as any).take ?? 20);
+  const safeTake = Math.min(Math.max(take, 1), 200);
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
+    take: safeTake,
   });
+  request.log.info(
+    filterRestrictedLogFields({
+      route: "/bank-lines",
+      take: safeTake,
+      resultCount: lines.length,
+    }),
+    "fetched bank lines",
+  );
   return { lines };
 });
 
 // Create a bank line
-app.post("/bank-lines", async (req, rep) => {
+app.post("/bank-lines", async (request, reply) => {
   try {
-    const body = req.body as {
+    const { orgId, date, amount, payee, desc } = request.body as {
       orgId: string;
       date: string;
       amount: number | string;
       payee: string;
       desc: string;
     };
+    request.log.info(
+      filterRestrictedLogFields({
+        route: "/bank-lines",
+        orgId: maskIdentifier(orgId),
+      }),
+      "creating bank line",
+    );
     const created = await prisma.bankLine.create({
       data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
+        orgId,
+        date: new Date(date),
+        amount: amount as any,
+        payee,
+        desc,
       },
     });
-    return rep.code(201).send(created);
+    request.log.info(
+      filterRestrictedLogFields({
+        route: "/bank-lines",
+        orgId: maskIdentifier(orgId),
+        bankLineId: maskIdentifier(created.id),
+      }),
+      "created bank line",
+    );
+    return reply.code(201).send(created);
   } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
+    const error = e instanceof Error ? e : new Error("unknown error");
+    request.log.error(
+      filterRestrictedLogFields({
+        route: "/bank-lines",
+        message: error.message,
+      }),
+      "failed to create bank line",
+    );
+    return reply.code(400).send({ error: "bad_request" });
   }
 });
 
