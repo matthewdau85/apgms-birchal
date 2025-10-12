@@ -1,0 +1,26 @@
+{
+  "rule_packs": [
+    {
+      "id": "2023-07",
+      "effective_from": "2023-07-01",
+      "source_url": "https://example.com/paygw/2023-07",
+      "source_digest": "sha256:2023exampledigest",
+      "brackets": [
+        {"threshold": 0, "rate": 0.19},
+        {"threshold": 18200, "rate": 0.325},
+        {"threshold": 45000, "rate": 0.37}
+      ]
+    },
+    {
+      "id": "2024-07",
+      "effective_from": "2024-07-01",
+      "source_url": "https://example.com/paygw/2024-07",
+      "source_digest": "sha256:2024exampledigest",
+      "brackets": [
+        {"threshold": 0, "rate": 0.18},
+        {"threshold": 20000, "rate": 0.33},
+        {"threshold": 50000, "rate": 0.36}
+      ]
+    }
+  ]
+}
