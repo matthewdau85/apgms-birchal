@@ -1,0 +1,51 @@
+{
+  "id": "stp2.big.1.0",
+  "effective_from": "2023-01-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "Business Implementation Guide (BIG) v1.0",
+    "url": "https://softwaredevelopers.ato.gov.au/",
+    "retrieved_at": "2024-03-30T00:00:00Z",
+    "sha256": "f12e3ce4dcd61fd941b16dfc53d72a5bd98be780aea0d3b2a15d2fd3e902de65"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    {
+      "field": "IncomeType",
+      "enum": ["SAW", "IAA", "FII", "DPN"],
+      "description": "Valid income type codes as defined in BIG.",
+      "validation": "value in enum"
+    },
+    {
+      "field": "CountryCode",
+      "format": "ISO-3166-1 alpha-2",
+      "description": "Country codes must follow ISO 3166-1 alpha-2 standard.",
+      "validation": "len(value) == 2 and value.upper() == value"
+    },
+    {
+      "field": "TaxTreatmentCode",
+      "enum": ["RT", "FT", "NT", "EXP"],
+      "description": "Tax treatment codes for STP Phase 2 reporting.",
+      "validation": "value in enum"
+    },
+    {
+      "field": "PaymentBasis",
+      "enum": ["Cash", "Accrual"],
+      "description": "Payment basis indicator for payroll events.",
+      "validation": "value in enum"
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Salary and wages event",
+      "inputs": {
+        "IncomeType": "SAW",
+        "CountryCode": "AU",
+        "TaxTreatmentCode": "RT",
+        "PaymentBasis": "Cash"
+      },
+      "expected_outputs": { "valid": true }
+    }
+  ]
+}
