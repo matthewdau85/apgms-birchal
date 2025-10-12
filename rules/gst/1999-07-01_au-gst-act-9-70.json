@@ -1,0 +1,39 @@
+{
+  "id": "gst.standard.1999-07-01",
+  "effective_from": "1999-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "Australian Parliament",
+    "document": "A New Tax System (Goods and Services Tax) Act 1999 - Section 9-70",
+    "url": "https://www.legislation.gov.au/Details/C2023C00230",
+    "retrieved_at": "2024-05-01T00:00:00Z",
+    "sha256": "ee2d1c9fef8b0e5b1a4f8f1f55ad3c6dcfce37df8457336db9726f8a041d5677"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    {
+      "classification": "standard_taxable_supply",
+      "description": "Supplies connected with Australia attract a flat 10% GST.",
+      "formula": "gst = taxable_value * 0.10",
+      "examples": [
+        { "taxable_value": 100.00, "expected_gst": 10.00 },
+        { "taxable_value": 153.27, "expected_gst": 15.327 }
+      ]
+    },
+    {
+      "classification": "gst_free_supply",
+      "description": "Supplies that are GST-free under Division 38 attract no GST.",
+      "formula": "gst = 0",
+      "examples": [
+        { "taxable_value": 200.00, "expected_gst": 0.00 }
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Standard taxable supply",
+      "inputs": { "taxable_value": 1200.00 },
+      "expected_outputs": { "gst": 120.00 }
+    }
+  ]
+}

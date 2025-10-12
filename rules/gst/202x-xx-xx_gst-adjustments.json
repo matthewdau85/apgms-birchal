@@ -1,0 +1,43 @@
+{
+  "id": "gst.adjustments.202x-xx-xx",
+  "effective_from": "2020-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "Goods and Services Tax rounding and adjustment rules",
+    "url": "https://www.ato.gov.au/business/gst/how-gst-applies/rounding/",
+    "retrieved_at": "2024-05-01T00:00:00Z",
+    "sha256": "b3f9c5b0f6b1b91d62f7afc9228e79d20df4922f5025f1a68f89785f74f87b27"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    {
+      "classification": "rounding",
+      "description": "GST amounts must be rounded to the nearest cent with half-cents rounded up.",
+      "formula": "gst = round(gst, 2, mode=HALF_UP)",
+      "examples": [
+        { "input_gst": 10.005, "expected_gst": 10.01 },
+        { "input_gst": 10.004, "expected_gst": 10.00 }
+      ]
+    },
+    {
+      "classification": "adjustment_events",
+      "description": "Adjustment events require increasing or decreasing adjustments when consideration changes.",
+      "formula": "adjustment = (original_gst - revised_gst)",
+      "examples": [
+        {
+          "original_gst": 110.00,
+          "revised_gst": 121.00,
+          "expected_adjustment": -11.00
+        }
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Half-cent rounding up",
+      "inputs": { "computed_gst": 33.335 },
+      "expected_outputs": { "rounded_gst": 33.34 }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "id": "bas.labels.v1",
+  "effective_from": "2023-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "BAS instructions - GST and PAYG withholding labels",
+    "url": "https://www.ato.gov.au/forms/business-activity-statement-bas/",
+    "retrieved_at": "2024-04-20T00:00:00Z",
+    "sha256": "1c2f624ad4f3b8456ff52ad3d94b2d81aa1d0562afcf73b749fa3960c18287fb"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    {
+      "label": "G1",
+      "description": "Total sales",
+      "components": ["taxable_supplies", "gst_free_supplies"],
+      "validation": "sum(components) == reported_amount"
+    },
+    {
+      "label": "1A",
+      "description": "GST on sales",
+      "components": ["gst_payable"],
+      "validation": "gst_payable == reported_amount"
+    },
+    {
+      "label": "1B",
+      "description": "GST on purchases",
+      "components": ["gst_credits"],
+      "validation": "gst_credits == reported_amount"
+    },
+    {
+      "label": "W1",
+      "description": "Total salary, wages and other payments",
+      "components": ["gross_wages", "other_taxable_payments"],
+      "validation": "sum(components) == reported_amount"
+    },
+    {
+      "label": "W2",
+      "description": "Amounts withheld from payments shown at W1",
+      "components": ["paygw_withheld"],
+      "validation": "paygw_withheld == reported_amount"
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Simple quarterly BAS",
+      "inputs": {
+        "taxable_supplies": 50000.00,
+        "gst_free_supplies": 5000.00,
+        "gst_payable": 5000.00,
+        "gst_credits": 1500.00,
+        "gross_wages": 20000.00,
+        "other_taxable_payments": 0.00,
+        "paygw_withheld": 3500.00
+      },
+      "expected_outputs": {
+        "G1": 55000.00,
+        "1A": 5000.00,
+        "1B": 1500.00,
+        "W1": 20000.00,
+        "W2": 3500.00
+      }
+    }
+  ]
+}

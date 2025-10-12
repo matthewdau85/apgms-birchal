@@ -1,0 +1,25 @@
+{
+  "id": "paygw.weekly.2024-07-01",
+  "effective_from": "2024-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "Tax table for weekly payments",
+    "url": "https://www.ato.gov.au/rates/tax-tables/weekly-tax-table/",
+    "retrieved_at": "2024-07-15T00:00:00Z",
+    "sha256": "a42cdd4170dfe39212263a33a08f0a0a9ad016a8f75a12b88f3f6d7e7d7309f6"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    { "threshold_from": 0, "threshold_to": 359, "withhold": 0, "formula": "0" },
+    { "threshold_from": 360, "threshold_to": 438, "formula": "(x - 359) * 0.19" },
+    { "threshold_from": 439, "threshold_to": 548, "formula": "15.02 + (x - 438) * 0.2900" },
+    { "threshold_from": 549, "threshold_to": 721, "formula": "46.87 + (x - 548) * 0.3300" },
+    { "threshold_from": 722, "threshold_to": 1282, "formula": "104.57 + (x - 721) * 0.3700" },
+    { "threshold_from": 1283, "threshold_to": null, "formula": "314.82 + (x - 1282) * 0.45" }
+  ],
+  "examples": [
+    { "gross": 1200, "expected_withholding": 245.00 },
+    { "gross": 800, "expected_withholding": 147.77 }
+  ]
+}
