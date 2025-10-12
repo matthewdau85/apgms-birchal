@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
@@ -15,7 +16,10 @@
   },
   "devDependencies": {
     "@types/node": "^24.7.1",
+    "supertest": "https://codeload.github.com/visionmedia/supertest/tar.gz/v6.3.4",
+    "testcontainers": "https://codeload.github.com/testcontainers/testcontainers-node/tar.gz/refs/tags/10.13.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "https://codeload.github.com/vitest-dev/vitest/tar.gz/refs/tags/v1.6.1"
   }
 }
