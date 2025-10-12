@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -12,6 +15,13 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
+      - run: pnpm install
       - run: pnpm -r build
       - run: pnpm -r test
+      - run: pnpm secret-scan
+      - name: Secret scan fails on dummy secret fixture
+        run: |
+          if pnpm secret-scan --paths tests/fixtures/security/dummy-secret.txt; then
+            echo "Expected secret scan to fail" >&2
+            exit 1
+          fi
