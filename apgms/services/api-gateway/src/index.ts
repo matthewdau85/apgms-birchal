@@ -15,6 +15,30 @@ const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
+const requiredApiToken = process.env.API_TOKEN;
+
+if (requiredApiToken) {
+  app.addHook("onRequest", async (request, reply) => {
+    const header = request.headers.authorization;
+
+    if (!header?.startsWith("Bearer ")) {
+      request.log.warn({ route: request.routerPath }, "missing authorization header");
+      reply.code(401).send({ error: "unauthorized" });
+      return reply;
+    }
+
+    const presentedToken = header.slice("Bearer ".length).trim();
+
+    if (presentedToken !== requiredApiToken) {
+      request.log.warn({ route: request.routerPath }, "invalid authorization token");
+      reply.code(403).send({ error: "forbidden" });
+      return reply;
+    }
+  });
+} else {
+  app.log.warn("API_TOKEN not configured; authentication disabled");
+}
+
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
