@@ -1,0 +1,76 @@
+name: E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: apgms
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm dlx @playwright/test@latest install --with-deps
+
+      - name: Start application stack
+        run: docker compose up -d
+
+      - name: Wait for services
+        run: |
+          for i in {1..10}; do
+            if docker compose ps | grep -q "Up"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose ps
+          exit 1
+
+      - name: Run Playwright tests
+        env:
+          CI: 'true'
+        run: pnpm dlx @playwright/test@latest test --reporter=line --config=playwright.config.ts
+
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            apgms/playwright-report
+            apgms/test-results
+          if-no-files-found: ignore
+
+      - name: Tear down environment
+        if: always()
+        run: docker compose down -v

@@ -1,0 +1,87 @@
+name: Security
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security-scans:
+    name: Security gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: apgms
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build container image
+        run: docker build -t apgms-security .
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0
+        with:
+          scan-type: fs
+          path: apgms
+          format: table
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@v0
+        with:
+          scan-type: image
+          image-ref: apgms-security
+          format: table
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+
+      - name: pnpm audit
+        run: pnpm audit --recursive
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source=. --no-git
+
+      - name: Verify SBOM
+        run: |
+          pnpm dlx @cyclonedx/cdxgen --fail-on-error --spec-version 1.5 --output sbom.cdx.json
+          test -s sbom.cdx.json
+
+      - name: Upload SBOM verification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: apgms/sbom.cdx.json
+
+      - name: License audit
+        run: pnpm dlx license-checker --summary --production
