@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "effective_from": "2024-01-01",
+    "source": "internal"
+  },
+  "data": {
+    "note": "This pack intentionally omits schema_version"
+  }
+}
