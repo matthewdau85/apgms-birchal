@@ -1,0 +1,39 @@
+{
+  "payer": {
+    "abn": "53004085616",
+    "name": "Acme Payroll Pty Ltd",
+    "branch": 123
+  },
+  "payee": {
+    "familyName": "Citizen",
+    "givenName": "Alex",
+    "otherGivenNames": "Pat",
+    "dateOfBirth": "1990-02-18",
+    "tfn": "123456782",
+    "employmentBasis": "fullTime",
+    "incomeStreamType": "salaryAndWages",
+    "residencyStatus": "australianResident",
+    "address": {
+      "line1": "100 Market Street",
+      "suburb": "Sydney",
+      "state": "NSW",
+      "postcode": "2000"
+    }
+  },
+  "payrollEvent": {
+    "payrollPeriod": {
+      "startDate": "2024-06-24",
+      "endDate": "2024-07-07"
+    },
+    "paymentDate": "2024-07-08",
+    "payrollEventNumber": "PAY-000123",
+    "grossAmount": 3850.75,
+    "paygwAmount": 812.35,
+    "superGuarantee": 365.82,
+    "yearToDate": {
+      "grossAmount": 45210.5,
+      "paygwAmount": 9600.4,
+      "superGuarantee": 4280.12
+    }
+  }
+}

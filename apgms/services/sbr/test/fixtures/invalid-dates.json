@@ -1,0 +1,24 @@
+{
+  "payer": {
+    "abn": "53004085616",
+    "name": "Acme Payroll Pty Ltd"
+  },
+  "payee": {
+    "familyName": "Citizen",
+    "givenName": "Alex",
+    "dateOfBirth": "18-02-1990",
+    "tfn": "123456782",
+    "employmentBasis": "contractor",
+    "incomeStreamType": "mysteryIncome"
+  },
+  "payrollEvent": {
+    "payrollPeriod": {
+      "startDate": "2024/06/24",
+      "endDate": "2024-07-07"
+    },
+    "paymentDate": "2024-13-01",
+    "grossAmount": -10,
+    "paygwAmount": 812.333,
+    "superGuarantee": -1
+  }
+}

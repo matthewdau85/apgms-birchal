@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.apgms.dev/ato/stp2/payroll-event.json",
+  "title": "ATO STP Phase 2 payroll event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payer", "payee", "payrollEvent"],
+  "properties": {
+    "payer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["abn", "name"],
+      "properties": {
+        "abn": {
+          "type": "string",
+          "pattern": "^\\d{11}$",
+          "description": "Australian Business Number must contain exactly 11 digits.",
+          "x-ruleId": "STP2.PAYER.100"
+        },
+        "branch": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9999,
+          "description": "Branch number must be in the range 0001-9999 when supplied.",
+          "x-ruleId": "STP2.PAYER.101"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Payer name is mandatory and must contain at least one character.",
+          "x-ruleId": "STP2.PAYER.001"
+        }
+      },
+      "x-ruleId": "STP2.PAYER.000"
+    },
+    "payee": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["familyName", "givenName", "tfn", "employmentBasis", "incomeStreamType"],
+      "properties": {
+        "familyName": {
+          "type": "string",
+          "minLength": 1,
+          "x-ruleId": "STP2.PAYEE.001"
+        },
+        "givenName": {
+          "type": "string",
+          "minLength": 1,
+          "x-ruleId": "STP2.PAYEE.002"
+        },
+        "otherGivenNames": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of birth must be provided in ISO-8601 date format (YYYY-MM-DD).",
+          "x-ruleId": "STP2.PAYEE.101"
+        },
+        "tfn": {
+          "type": "string",
+          "pattern": "^(?:\\d{8}|\\d{9}|000000000|111111111|333333333|444444444|555555555)$",
+          "description": "Tax File Number must be 8 or 9 digits or an accepted special value.",
+          "x-ruleId": "STP2.PAYEE.100"
+        },
+        "employmentBasis": {
+          "type": "string",
+          "enum": [
+            "fullTime",
+            "partTime",
+            "casual",
+            "labourHire",
+            "seasonal",
+            "nonOngoing",
+            "voluntaryAgreement",
+            "other"
+          ],
+          "x-ruleId": "STP2.PAYEE.120"
+        },
+        "incomeStreamType": {
+          "type": "string",
+          "enum": [
+            "salaryAndWages",
+            "workingHoliday",
+            "closelyHeld",
+            "inboundAssignee",
+            "nonResident",
+            "seasonalWorker"
+          ],
+          "x-ruleId": "STP2.PAYEE.121"
+        },
+        "residencyStatus": {
+          "type": "string",
+          "enum": ["australianResident", "foreignResident", "workingHolidayMaker"]
+        },
+        "address": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "line1": { "type": "string" },
+            "line2": { "type": "string" },
+            "suburb": { "type": "string" },
+            "state": {
+              "type": "string",
+              "enum": ["NSW", "QLD", "VIC", "TAS", "SA", "WA", "ACT", "NT"]
+            },
+            "postcode": {
+              "type": "string",
+              "pattern": "^\\d{4}$"
+            }
+          }
+        }
+      },
+      "x-ruleId": "STP2.PAYEE.000"
+    },
+    "payrollEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "payrollPeriod",
+        "paymentDate",
+        "grossAmount",
+        "paygwAmount",
+        "superGuarantee"
+      ],
+      "properties": {
+        "payrollPeriod": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["startDate", "endDate"],
+          "properties": {
+            "startDate": {
+              "type": "string",
+              "format": "date",
+              "x-ruleId": "STP2.EVENT.100"
+            },
+            "endDate": {
+              "type": "string",
+              "format": "date",
+              "x-ruleId": "STP2.EVENT.101"
+            }
+          },
+          "x-ruleId": "STP2.EVENT.099"
+        },
+        "paymentDate": {
+          "type": "string",
+          "format": "date",
+          "x-ruleId": "STP2.EVENT.102"
+        },
+        "payrollEventNumber": {
+          "type": "string",
+          "pattern": "^[0-9A-Za-z-]{1,20}$",
+          "x-ruleId": "STP2.EVENT.050"
+        },
+        "grossAmount": {
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 0.01,
+          "x-ruleId": "STP2.EVENT.200"
+        },
+        "paygwAmount": {
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 0.01,
+          "x-ruleId": "STP2.EVENT.201"
+        },
+        "superGuarantee": {
+          "type": "number",
+          "minimum": 0,
+          "multipleOf": 0.01,
+          "x-ruleId": "STP2.EVENT.202"
+        },
+        "yearToDate": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "grossAmount": {
+              "type": "number",
+              "minimum": 0,
+              "multipleOf": 0.01,
+              "x-ruleId": "STP2.EVENT.210"
+            },
+            "paygwAmount": {
+              "type": "number",
+              "minimum": 0,
+              "multipleOf": 0.01,
+              "x-ruleId": "STP2.EVENT.211"
+            },
+            "superGuarantee": {
+              "type": "number",
+              "minimum": 0,
+              "multipleOf": 0.01,
+              "x-ruleId": "STP2.EVENT.212"
+            }
+          }
+        }
+      },
+      "x-ruleId": "STP2.EVENT.000"
+    }
+  }
+}
