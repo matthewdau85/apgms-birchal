@@ -1,0 +1,28 @@
+{
+  "version": "2024-07-01",
+  "published": "2024-07-01",
+  "source": "BAS instructions NAT 73945-06.2024",
+  "mappings": [
+    {
+      "label": "G1",
+      "description": "Total sales",
+      "internalField": "sales.totalTaxable",
+      "category": "GST",
+      "notes": "Used to report total taxable supplies before adjustments"
+    },
+    {
+      "label": "G2",
+      "description": "Export sales",
+      "internalField": "sales.exports",
+      "category": "GST",
+      "notes": "Goods exported from Australia"
+    },
+    {
+      "label": "W1",
+      "description": "Total salary, wages and other payments",
+      "internalField": "paygw.grossPayments",
+      "category": "PAYGW",
+      "notes": "Basis for PAYGW withholding reporting"
+    }
+  ]
+}

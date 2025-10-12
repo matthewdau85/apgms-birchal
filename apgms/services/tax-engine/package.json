@@ -1,0 +1,19 @@
+{
+  "name": "@apgms/tax-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.json && node --test dist/test",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

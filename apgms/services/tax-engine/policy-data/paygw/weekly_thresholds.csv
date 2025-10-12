@@ -1,0 +1,6 @@
+minimum,maximum,baseWithholding,marginalRate
+0,359,0,0
+359,438,0,0.19
+438,548,15,0.29
+548,721,46,0.21
+721,,82,0.45

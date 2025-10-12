@@ -1,0 +1,41 @@
+{
+  "version": "2024-07-01",
+  "published": "2024-07-01",
+  "source": "Sampled from ATO PAYG withholding tax tables 1 July 2024 (QC 72995)",
+  "roundingRules": [
+    {
+      "id": "weekly-rounded",
+      "method": "NEAREST",
+      "precision": 0,
+      "half": "UP",
+      "description": "ATO weekly tables round to the nearest dollar"
+    },
+    {
+      "id": "monthly-cents",
+      "method": "NEAREST",
+      "precision": 2,
+      "half": "EVEN",
+      "description": "Monthly withholding retains cents with bankers rounding"
+    }
+  ],
+  "scales": [
+    {
+      "id": "weekly-general",
+      "period": "weekly",
+      "thresholdsFile": "weekly_thresholds.csv",
+      "roundingRuleId": "weekly-rounded",
+      "effectiveFrom": "2024-07-01",
+      "effectiveTo": null,
+      "notes": "Employees claiming the tax-free threshold"
+    },
+    {
+      "id": "monthly-general",
+      "period": "monthly",
+      "thresholdsFile": "monthly_thresholds.csv",
+      "roundingRuleId": "monthly-cents",
+      "effectiveFrom": "2024-07-01",
+      "effectiveTo": null,
+      "notes": "Monthly payroll cycle"
+    }
+  ]
+}
