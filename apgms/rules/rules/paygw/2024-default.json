@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "domain": "paygw",
+    "effective_from": "2024-01-01",
+    "effective_to": "2024-12-31",
+    "source": "PAYGW schedule 2024",
+    "schema_version": "1.0.0"
+  },
+  "rules": {
+    "tax_free_threshold": 18200,
+    "marginal_rates": [
+      { "up_to": 45000, "rate": 0.19 },
+      { "up_to": 120000, "rate": 0.325 },
+      { "up_to": 180000, "rate": 0.37 },
+      { "rate": 0.45 }
+    ]
+  }
+}

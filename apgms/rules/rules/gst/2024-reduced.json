@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "domain": "gst",
+    "variant": "reduced",
+    "effective_from": "2024-07-01",
+    "source": "ATO GST reduced rate 2024",
+    "schema_version": "1.0.0"
+  },
+  "rules": {
+    "rate": 0.05,
+    "low_value_threshold": 60000
+  }
+}
