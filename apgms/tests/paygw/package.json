@@ -1,0 +1,8 @@
+{
+  "name": "@apgms/paygw-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
