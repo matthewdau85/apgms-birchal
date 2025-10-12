@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    name: Install, test, and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: apgms
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: |
+          pnpm --if-present run fmt:check
+          pnpm -r --if-present run fmt:check
+
+      - name: Lint
+        run: |
+          pnpm --if-present run lint
+          pnpm -r --if-present run lint
+
+      - name: Typecheck
+        run: |
+          pnpm --if-present run typecheck
+          pnpm -r --if-present run typecheck
+
+      - name: Unit tests
+        run: |
+          pnpm --if-present run test
+          pnpm -r --if-present run test
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: apgms
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx
+          path: sbom.spdx.json
+
+      - name: Docker build
+        run: docker build -t apgms-ci .
