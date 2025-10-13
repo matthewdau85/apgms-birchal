@@ -1,8 +1,28 @@
-﻿name: Security
+name: Security
+
 on: [push]
+
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo scanning
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Generate SBOM
+        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-file sbom.json
+      - name: Run dependency audit
+        run: pnpm audit --prod > security-scan.txt || true
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-artifacts
+          path: |
+            sbom.json
+            security-scan.txt
