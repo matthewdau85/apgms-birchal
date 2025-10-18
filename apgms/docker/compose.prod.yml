@@ -1,0 +1,23 @@
+services:
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: services/api-gateway/Dockerfile
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://apgms:apgms@postgres:5432/apgms
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: apgms
+      POSTGRES_PASSWORD: apgms
+      POSTGRES_DB: apgms
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
