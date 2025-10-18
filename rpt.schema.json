@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/rpt.schema.json",
+  "title": "RPT",
+  "type": "object",
+  "required": [
+    "rptId",
+    "orgId",
+    "bankLineId",
+    "policyHash",
+    "allocations",
+    "prevHash",
+    "sig",
+    "timestamp"
+  ],
+  "properties": {
+    "rptId": {
+      "type": "string",
+      "pattern": "^rpt_[a-z0-9]{8,}$"
+    },
+    "orgId": {
+      "type": "string"
+    },
+    "bankLineId": {
+      "type": "string"
+    },
+    "policyHash": {
+      "type": "string",
+      "minLength": 32
+    },
+    "allocations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/allocation"
+      }
+    },
+    "prevHash": {
+      "type": "string"
+    },
+    "sig": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "allocation": {
+      "type": "object",
+      "required": [
+        "bucket",
+        "amountCents",
+        "currency"
+      ],
+      "properties": {
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "OPERATING",
+            "TAX_BUFFER",
+            "PAYGW",
+            "GST"
+          ]
+        },
+        "amountCents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

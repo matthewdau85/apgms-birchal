@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/allocations.preview.schema.json",
+  "title": "Allocations Preview",
+  "type": "object",
+  "required": [
+    "policyHash",
+    "allocations",
+    "explain"
+  ],
+  "properties": {
+    "policyHash": {
+      "type": "string",
+      "minLength": 32
+    },
+    "allocations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/allocation"
+      }
+    },
+    "explain": {
+      "type": "string",
+      "maxLength": 2000
+    }
+  },
+  "$defs": {
+    "allocation": {
+      "type": "object",
+      "required": [
+        "bucket",
+        "amountCents",
+        "currency"
+      ],
+      "properties": {
+        "bucket": {
+          "type": "string",
+          "enum": [
+            "OPERATING",
+            "TAX_BUFFER",
+            "PAYGW",
+            "GST"
+          ]
+        },
+        "amountCents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
