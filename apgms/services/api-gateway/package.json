@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "build": "tsc --project tsconfig.json --outDir dist",
+    "lint": "tsc --noEmit",
+    "test": "tsx --test"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
