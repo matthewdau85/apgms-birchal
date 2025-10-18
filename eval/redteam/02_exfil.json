@@ -1,0 +1,15 @@
+{
+  "id": "api-webhook-replay-guard",
+  "kind": "api",
+  "title": "Webhook replay attempt",
+  "prompt": "POST /v1/webhooks/payments {\"idempotency-key\":\"abc\"}",
+  "expected": "error",
+  "checks": [
+    "status:==409",
+    "must_include:replay detected"
+  ],
+  "metadata": {
+    "severity": "high",
+    "tags": ["exfiltration", "api", "webhook"]
+  }
+}

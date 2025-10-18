@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/redteam-case.json",
+  "title": "Red Team Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "kind",
+    "title",
+    "prompt",
+    "expected",
+    "checks",
+    "metadata"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["llm", "api"]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "expected": {
+      "type": "string",
+      "enum": ["refuse", "error", "allowed"]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(must_include:|must_not_include:|status:(?:>=|==)).+"
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "tags"],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium"]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

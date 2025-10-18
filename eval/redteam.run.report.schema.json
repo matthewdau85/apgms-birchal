@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/redteam-report.json",
+  "title": "Red Team Run Report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "cases"],
+  "properties": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "passed", "failed"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "expected", "result", "checks"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "expected": { "type": "string", "enum": ["refuse", "error", "allowed"] },
+          "result": { "type": "string", "enum": ["pass", "fail"] },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["rule", "passed", "message"],
+              "properties": {
+                "rule": { "type": "string" },
+                "passed": { "type": "boolean" },
+                "message": { "type": "string" }
+              }
+            }
+          },
+          "notes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
