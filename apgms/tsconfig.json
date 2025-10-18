@@ -9,6 +9,8 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM"],
     "paths": {
       "@apgms/shared/*": ["shared/src/*"]
     }
