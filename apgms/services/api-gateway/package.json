@@ -7,7 +7,7 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
-    "@apgms/shared": "workspace:*",
+    "@apgms/shared": "file:../../shared",
     "@fastify/cors": "^11.1.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",

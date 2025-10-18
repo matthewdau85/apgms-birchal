@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@apgms/shared':
-        specifier: workspace:*
+        specifier: file:../../shared
         version: link:../../shared
       '@fastify/cors':
         specifier: ^11.1.0

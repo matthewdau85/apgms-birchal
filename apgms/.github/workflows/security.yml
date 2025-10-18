@@ -6,3 +6,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo scanning
+  sbom-sca:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          npm ci || (corepack enable pnpm && pnpm install --frozen-lockfile)
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-gateway-sbom
+          path: sbom.json
+          if-no-files-found: error
+      - name: Run dependency audit
+        run: |
+          set -euo pipefail
+          npm run sca -- --json > audit.json || true
+          node scripts/check-audit.mjs audit.json
