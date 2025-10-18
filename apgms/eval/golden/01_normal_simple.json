@@ -1,0 +1,35 @@
+{
+  "description": "Simple credit line is processed with invariant ledger structure.",
+  "cases": [
+    {
+      "name": "credit_line_simple",
+      "tags": ["credit", "baseline"],
+      "input": {
+        "org_id": "demo-org",
+        "gate_open": true,
+        "payload": {
+          "type": "credit",
+          "amount": { "value": 1250.75, "currency": "AUD" },
+          "narrative": "Office fit-out rebate",
+          "timestamp": "2024-07-01T12:00:00.000Z"
+        }
+      },
+      "expected": {
+        "status": 201,
+        "body": {
+          "ok": true,
+          "gate": { "open": true },
+          "result": {
+            "normalizedAmount": 1250.75,
+            "ledger": {
+              "debit": 0,
+              "credit": 1250.75,
+              "net": 1250.75,
+              "currency": "AUD"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

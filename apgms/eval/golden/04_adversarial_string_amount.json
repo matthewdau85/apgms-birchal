@@ -1,0 +1,35 @@
+{
+  "description": "Adversarial string payloads are normalized safely.",
+  "cases": [
+    {
+      "name": "string_amount_with_currency_noise",
+      "tags": ["credit", "adversarial", "string"],
+      "input": {
+        "org_id": "demo-org",
+        "gate_open": true,
+        "payload": {
+          "type": "credit",
+          "amount": { "value": " AUD +1,500.4999 ", "currency": "AUD" },
+          "narrative": "Investor top-up",
+          "timestamp": "2024-07-04T23:01:45.000Z"
+        }
+      },
+      "expected": {
+        "status": 201,
+        "body": {
+          "ok": true,
+          "gate": { "open": true },
+          "result": {
+            "normalizedAmount": 1500.5,
+            "ledger": {
+              "debit": 0,
+              "credit": 1500.5,
+              "net": 1500.5,
+              "currency": "AUD"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

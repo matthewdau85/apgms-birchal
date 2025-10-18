@@ -1,0 +1,27 @@
+{
+  "description": "Feature gate prevents postings when closed.",
+  "cases": [
+    {
+      "name": "gate_closed_blocks_posting",
+      "tags": ["gate", "safety"],
+      "input": {
+        "org_id": "demo-org",
+        "gate_open": false,
+        "payload": {
+          "type": "credit",
+          "amount": { "value": 4500, "currency": "AUD" },
+          "narrative": "Late settlement",
+          "timestamp": "2024-07-03T01:14:27.000Z"
+        }
+      },
+      "expected": {
+        "status": 409,
+        "body": {
+          "ok": false,
+          "gate": { "open": false, "reason": "engine_maintenance" },
+          "error": "engine_gate_closed"
+        }
+      }
+    }
+  ]
+}
