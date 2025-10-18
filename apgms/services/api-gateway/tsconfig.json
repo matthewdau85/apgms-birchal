@@ -9,7 +9,7 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["packages/shared/src/*"]
     }
   },
   "include": ["src"]

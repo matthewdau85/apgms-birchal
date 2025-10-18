@@ -38,7 +38,7 @@ importers:
     dependencies:
       '@apgms/shared':
         specifier: workspace:*
-        version: link:../../shared
+        version: link:../../packages/shared
       '@fastify/cors':
         specifier: ^11.1.0
         version: 11.1.0
@@ -62,7 +62,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  shared:
+  packages/shared:
     dependencies:
       '@prisma/client':
         specifier: 6.17.1
