@@ -1,0 +1,24 @@
+{
+  "name": "adversarial_string_amount",
+  "description": "String encoded amounts with explicit signs should be normalised and evaluated without double negation.",
+  "input": {
+    "gate": { "open": true, "threshold": 0.6 },
+    "transactions": [
+      { "id": "txn_string_credit", "type": "credit", "amount": "1000.000", "risk_score": 0.3, "note": "String formatted as credit" },
+      { "id": "txn_string_debit", "type": "debit", "amount": "-250.5", "risk_score": 0.2, "note": "Debit encoded with negative string" },
+      { "id": "txn_high_risk_string", "type": "credit", "amount": "75.40", "risk_score": 0.95, "note": "Risk forces rejection despite valid amount" }
+    ]
+  },
+  "expected": {
+    "gate_open": true,
+    "approved": {
+      "ids": ["txn_string_credit", "txn_string_debit"],
+      "total": 749.5
+    },
+    "rejected": {
+      "ids": ["txn_high_risk_string"],
+      "total": 75.4
+    },
+    "net": 824.9
+  }
+}

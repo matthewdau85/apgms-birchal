@@ -1,0 +1,24 @@
+{
+  "name": "normal_rounding",
+  "description": "Micro transactions require rounding to the nearest cent and should retain order stability.",
+  "input": {
+    "gate": { "open": true, "threshold": 0.5 },
+    "transactions": [
+      { "id": "txn_micro_credit", "type": "credit", "amount": 10.015, "risk_score": 0.1, "note": "Tiny over-the-counter top up" },
+      { "id": "txn_micro_debit", "type": "debit", "amount": 3.004, "risk_score": 0.4, "note": "Micro card refund" },
+      { "id": "txn_threshold_credit", "type": "credit", "amount": 2.005, "risk_score": 0.55, "note": "Risk above threshold should be rejected" }
+    ]
+  },
+  "expected": {
+    "gate_open": true,
+    "approved": {
+      "ids": ["txn_micro_credit", "txn_micro_debit"],
+      "total": 7.02
+    },
+    "rejected": {
+      "ids": ["txn_threshold_credit"],
+      "total": 2.01
+    },
+    "net": 9.03
+  }
+}

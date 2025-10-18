@@ -1,0 +1,23 @@
+{
+  "name": "edge_gate_closed",
+  "description": "Gate is forcibly closed which should reject every transaction regardless of risk score.",
+  "input": {
+    "gate": { "open": false, "threshold": 0.4 },
+    "transactions": [
+      { "id": "txn_gate_block_credit", "type": "credit", "amount": 200, "risk_score": 0.1, "note": "Would normally pass but gate is closed" },
+      { "id": "txn_gate_block_debit", "type": "debit", "amount": 50, "risk_score": 0.2, "note": "Debit also held back" }
+    ]
+  },
+  "expected": {
+    "gate_open": false,
+    "approved": {
+      "ids": [],
+      "total": 0
+    },
+    "rejected": {
+      "ids": ["txn_gate_block_credit", "txn_gate_block_debit"],
+      "total": 150
+    },
+    "net": 150
+  }
+}
