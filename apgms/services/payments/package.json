@@ -1,0 +1,21 @@
+{
+  "name": "@apgms/payments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test --tsconfig ../../tsconfig.json ./test/becsAdapter.test.ts"
+  },
+  "dependencies": {
+    "@apgms/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.1",
+    "tslib": "^2.6.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

@@ -9,7 +9,8 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/payments/*": ["services/payments/src/*"]
     }
   },
   "include": ["src"]
