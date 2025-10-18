@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { prisma } from "../../../shared/src/db.js";
 
 const app = Fastify({ logger: true });
 
@@ -19,6 +19,7 @@ await app.register(cors, { origin: true });
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+app.get("/healthz", async () => ({ status: "ok" }));
 
 // List users (email + org)
 app.get("/users", async () => {
