@@ -1,0 +1,27 @@
+Control,Description,Status,EvidencePath
+V2.1.1,Implement multi-factor authentication for high-risk actions,PASS,docs/evidence/mfa-policy.md
+V2.1.2,Disable or remove default accounts before deployment,PASS,docs/evidence/account-hardening.md
+V2.1.3,Enforce lockout after repeated failed authentication attempts,PASS,docs/evidence/auth-lockout.md
+V2.2.1,Store passwords using strong adaptive hashing,PASS,docs/evidence/password-storage.md
+V2.2.2,Enforce minimum password complexity rules,PASS,docs/evidence/password-policy.md
+V2.2.4,Provide secure password change with reauthentication,PASS,docs/evidence/password-change.md
+V2.3.1,Verify identity for account recovery workflows,PASS,docs/evidence/account-recovery.md
+V2.4.1,Use high-entropy unique session identifiers,PASS,docs/evidence/session-id.md
+V2.4.2,Regenerate session identifiers after authentication,PASS,docs/evidence/session-rotation.md
+V2.4.3,Invalidate server-side session on logout,PASS,docs/evidence/session-termination.md
+V2.5.1,Protect remember-me tokens against replay,PASS,docs/evidence/remember-me.md
+V2.6.1,Expire inactive sessions within defined timeout,PASS,docs/evidence/session-timeout.md
+V2.7.1,Require secure storage of biometric templates,NA,
+V2.8.1,Secure device binding for mobile applications,NA,
+V2.9.1,Protect out-of-band authenticators from compromise,NA,
+V3.1.1,Validate input types length and range on the server,PASS,docs/evidence/input-validation.md
+V3.2.1,Perform centralized server-side validation routines,PASS,docs/evidence/validation-framework.md
+V3.3.1,Encode all output according to context,PASS,docs/evidence/output-encoding.md
+V3.4.1,Use parameterized queries for all database access,PASS,docs/evidence/sql-queries.md
+V3.5.1,Validate and sanitize serialized data before processing,PASS,docs/evidence/deserialization-controls.md
+V3.6.1,Restrict file uploads by type size and content,PASS,docs/evidence/file-upload.md
+V3.7.1,Sanitize untrusted HTML before rendering,PASS,docs/evidence/html-sanitization.md
+V3.8.1,Validate all client supplied data for APIs,PASS,docs/evidence/api-validation.md
+V7.1.1,Enforce TLS configurations with strong ciphers,PASS,docs/evidence/tls-config.md
+V7.2.1,Protect cryptographic keys with secure storage,PASS,docs/evidence/key-management.md
+V10.1.1,Log security relevant events with integrity,PASS,docs/evidence/security-logging.md
