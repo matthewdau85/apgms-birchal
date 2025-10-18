@@ -1,18 +1,24 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
   users     User[]
   lines     BankLine[]
+  policies  Policy[]
+  gates     Gate[]
+  ledger    LedgerEntry[]
+  rptTokens RptToken[]
+  auditLog  AuditBlob[]
 }
 
 model User {
@@ -25,12 +31,86 @@ model User {
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  date        DateTime
+  amountCents Int
+  payee       String
+  desc        String
+  createdAt   DateTime @default(now())
+}
+
+model Policy {
+  id           String        @id @default(cuid())
+  org          Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  name         String
+  createdAt    DateTime      @default(now())
+  gates        Gate[]
+  ledger       LedgerEntry[]
+  rptTokens    RptToken[]
+  auditBlobs   AuditBlob[]
+}
+
+model Gate {
+  id          String        @id @default(cuid())
+  org         Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  policy      Policy        @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId    String
+  name        String
+  createdAt   DateTime      @default(now())
+  ledger      LedgerEntry[]
+  rptTokens   RptToken[]
+  auditBlobs  AuditBlob[]
+}
+
+model LedgerEntry {
+  id           String       @id @default(cuid())
+  org          Org          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  policy       Policy       @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId     String
+  gate         Gate?        @relation(fields: [gateId], references: [id], onDelete: SetNull)
+  gateId       String?
+  rptToken     RptToken?    @relation(fields: [rptTokenId], references: [id], onDelete: SetNull)
+  rptTokenId   String?
+  amountCents  Int
+  description  String?
+  createdAt    DateTime     @default(now())
+  auditBlobs   AuditBlob[]
+}
+
+model RptToken {
+  id          String        @id @default(cuid())
+  org         Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  policy      Policy        @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId    String
+  gate        Gate?         @relation(fields: [gateId], references: [id], onDelete: SetNull)
+  gateId      String?
+  prevHash    String?
+  hash        String
+  issuedAt    DateTime      @default(now())
+  ledger      LedgerEntry[]
+  auditBlobs  AuditBlob[]
+}
+
+model AuditBlob {
+  id            String       @id @default(cuid())
+  org           Org          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  policy        Policy       @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId      String
+  gate          Gate?        @relation(fields: [gateId], references: [id], onDelete: SetNull)
+  gateId        String?
+  rptToken      RptToken     @relation(fields: [rptTokenId], references: [id], onDelete: Cascade)
+  rptTokenId    String
+  ledgerEntry   LedgerEntry? @relation(fields: [ledgerEntryId], references: [id], onDelete: SetNull)
+  ledgerEntryId String?
+  prevHash      String?
+  hash          String
+  data          Bytes
+  createdAt     DateTime     @default(now())
 }
