@@ -8,12 +8,16 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
-import cors from "@fastify/cors";
+import authPlugin from "./plugins/auth";
+import corsPlugin from "./plugins/cors";
+import rateLimitPlugin from "./plugins/rate-limit";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+await app.register(authPlugin);
+await app.register(corsPlugin);
+await app.register(rateLimitPlugin);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
