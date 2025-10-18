@@ -34,3 +34,41 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model Policy {
+  id            String       @id @default(cuid())
+  org           Org          @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  name          String
+  status        PolicyStatus
+  premium       Decimal
+  effectiveDate DateTime
+  createdAt     DateTime     @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  actor     String
+  action    String
+  createdAt DateTime @default(now())
+  details   Json?
+}
+
+model Allocation {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  portfolio  String
+  amount     Decimal
+  currency   String   @default("AUD")
+  updatedAt  DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
+enum PolicyStatus {
+  ACTIVE
+  LAPSED
+  PENDING
+}
