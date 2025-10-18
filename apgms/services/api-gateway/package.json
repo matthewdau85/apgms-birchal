@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "tsx --test test"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
+    "@aws-sdk/client-kms": "^3.674.0",
     "@fastify/cors": "^11.1.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",
