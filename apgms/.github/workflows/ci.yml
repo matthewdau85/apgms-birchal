@@ -15,3 +15,4 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - run: pnpm --dir apgms run runbook:ndb:check
