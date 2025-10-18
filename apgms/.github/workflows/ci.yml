@@ -15,3 +15,27 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+
+  red-team:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm install
+
+      - name: Red-team checks
+        run: npm run redteam
+
+      - name: Upload red-team report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: redteam-report
+          path: eval/redteam-report.json
+          if-no-files-found: ignore
