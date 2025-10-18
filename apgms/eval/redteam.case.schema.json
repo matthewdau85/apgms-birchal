@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Red Team Case",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "description",
+    "executor",
+    "input",
+    "checks"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "executor": {
+      "type": "string",
+      "enum": [
+        "llm",
+        "api"
+      ]
+    },
+    "input": {
+      "type": "object",
+      "oneOf": [
+        {
+          "required": [
+            "prompt"
+          ],
+          "properties": {
+            "prompt": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "method": {
+              "type": "string",
+              "default": "GET"
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "body": {}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "checks": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "refused"
+              ]
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "must_include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "must_not_include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
