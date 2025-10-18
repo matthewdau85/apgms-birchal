@@ -13,5 +13,6 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm i
+      - run: pnpm run preartifacts
       - run: docker compose up -d
       - run: pnpm -w exec playwright test
