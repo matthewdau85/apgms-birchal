@@ -1,18 +1,22 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String               @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime             @default(now())
   users     User[]
   lines     BankLine[]
+  accounts  DesignatedAccount[]
+  audits    AuditEvent[]
+  allocations Allocation[]
 }
 
 model User {
@@ -25,12 +29,60 @@ model User {
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id        String      @id @default(cuid())
+  org       Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
   date      DateTime
   amount    Decimal
   payee     String
   desc      String
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
+  allocations Allocation[]
+}
+
+model DesignatedAccount {
+  id            String        @id @default(cuid())
+  org           Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  name          String
+  bsb           String
+  accountNumber String
+  balance       Decimal       @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  allocations   Allocation[]
+}
+
+model Allocation {
+  id                   String              @id @default(cuid())
+  org                  Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId                String
+  bankLine             BankLine?           @relation(fields: [bankLineId], references: [id], onDelete: SetNull)
+  bankLineId           String?
+  designatedAccount    DesignatedAccount?  @relation(fields: [designatedAccountId], references: [id], onDelete: SetNull)
+  designatedAccountId  String?
+  amount               Decimal
+  status               AllocationStatus    @default(PENDING)
+  notes                String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  auditEvents          AuditEvent[]
+}
+
+model AuditEvent {
+  id            String      @id @default(cuid())
+  org           Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  allocation    Allocation? @relation(fields: [allocationId], references: [id], onDelete: SetNull)
+  allocationId  String?
+  actor         String
+  action        String
+  details       Json?
+  createdAt     DateTime     @default(now())
+}
+
+enum AllocationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
 }
