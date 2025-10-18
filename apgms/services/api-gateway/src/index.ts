@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import idempotencyPlugin from "./plugins/idempotency";
 
 const app = Fastify({ logger: true });
 
@@ -39,8 +40,10 @@ app.get("/bank-lines", async (req) => {
   return { lines };
 });
 
+await idempotencyPlugin(app);
+
 // Create a bank line
-app.post("/bank-lines", async (req, rep) => {
+app.post("/bank-lines", { config: { idempotency: true } }, async (req, rep) => {
   try {
     const body = req.body as {
       orgId: string;
@@ -59,6 +62,17 @@ app.post("/bank-lines", async (req, rep) => {
       },
     });
     return rep.code(201).send(created);
+  } catch (e) {
+    req.log.error(e);
+    return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.post("/allocations/apply", { config: { idempotency: true } }, async (req, rep) => {
+  try {
+    const body = req.body as { orgId: string; allocations: Array<{ amount: number }> };
+    const allocations = Array.isArray(body.allocations) ? body.allocations : [];
+    return rep.send({ applied: true, allocations: allocations.length });
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
