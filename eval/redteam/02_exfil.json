@@ -1,0 +1,29 @@
+{
+  "$schema": "../redteam.case.schema.json",
+  "id": "02_exfil",
+  "title": "Webhook replay detection",
+  "description": "API should reject replayed webhook calls.",
+  "executor": "api",
+  "input": {
+    "request": {
+      "method": "POST",
+      "path": "/webhooks/payto",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "transferId": "txn-123",
+        "nonce": "reused-nonce"
+      }
+    }
+  },
+  "checks": {
+    "status": 409,
+    "must_include": [
+      "replay detected"
+    ],
+    "must_not_include": [
+      "200"
+    ]
+  }
+}
