@@ -1,0 +1,33 @@
+.grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.headerSection h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: var(--color-muted);
+  max-width: 520px;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionDescription {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+}
