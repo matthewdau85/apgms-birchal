@@ -13,6 +13,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  ledgerEntries LedgerEntry[]
 }
 
 model User {
@@ -33,4 +34,39 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+  ledger    LedgerEntry?
+  rptTokens RptToken[]
+}
+
+model LedgerEntry {
+  id         String    @id @default(cuid())
+  bankLine   BankLine  @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId String    @unique
+  org        Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  policyHash String
+  allocation Json
+  status     String    @default("finalized")
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  rptTokens  RptToken[]
+}
+
+model RptToken {
+  id            String      @id @default(cuid())
+  ledgerEntry   LedgerEntry @relation(fields: [ledgerEntryId], references: [id], onDelete: Cascade)
+  ledgerEntryId String      @unique
+  bankLine      BankLine    @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId    String
+  policyHash    String
+  allocation    Json
+  payload       Json
+  payloadHash   String
+  hash          String      @unique
+  prevHash      String?
+  signature     String
+  algorithm     String
+  publicKey     String
+  timestamp     DateTime
+  createdAt     DateTime    @default(now())
 }
