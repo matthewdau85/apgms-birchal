@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  @apply min-h-screen bg-slate-100 text-slate-900 antialiased;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+.skip-link {
+  @apply sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-md focus:bg-brand focus:px-4 focus:py-2 focus:text-brand-foreground;
+}
