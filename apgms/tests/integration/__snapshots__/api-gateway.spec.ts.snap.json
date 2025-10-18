@@ -1,0 +1,3 @@
+{
+  "api-gateway integration requires valid token for user listing": "{\n  \"users\": [\n    {\n      \"email\": \"finance@example.com\",\n      \"orgId\": \"org-1\",\n      \"createdAt\": \"2024-01-01T00:00:00.000Z\"\n    }\n  ]\n}"
+}
