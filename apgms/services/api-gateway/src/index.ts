@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { bankLinesRoutes } from "./routes/bank-lines";
 
 const app = Fastify({ logger: true });
 
@@ -29,41 +30,7 @@ app.get("/users", async () => {
   return { users };
 });
 
-// List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
-  const lines = await prisma.bankLine.findMany({
-    orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
-  });
-  return { lines };
-});
-
-// Create a bank line
-app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
-  }
-});
+await app.register(bankLinesRoutes);
 
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
