@@ -1,0 +1,11 @@
+{
+  "name": "apgms-birchal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "golden": "tsx eval/run-golden.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}
