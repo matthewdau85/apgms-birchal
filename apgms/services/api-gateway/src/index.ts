@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { appendAuditBlob } from "./lib/audit";
 
 const app = Fastify({ logger: true });
 
@@ -62,6 +63,40 @@ app.post("/bank-lines", async (req, rep) => {
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const body = req.body as {
+      orgId?: string;
+      mintedRPT?: unknown;
+      mintedRpt?: unknown;
+      prevHash?: string | null;
+      type?: string;
+    };
+
+    if (!body?.orgId) {
+      return rep.code(400).send({ error: "missing_org" });
+    }
+
+    const minted = body.mintedRPT ?? body.mintedRpt;
+
+    if (typeof minted === "undefined") {
+      return rep.code(400).send({ error: "missing_minted_rpt" });
+    }
+
+    const audit = await appendAuditBlob({
+      orgId: body.orgId,
+      type: body.type ?? "allocation.apply",
+      payload: { mintedRPT: minted },
+      prevHash: body.prevHash ?? undefined,
+    });
+
+    return rep.code(201).send({ audit });
+  } catch (error) {
+    req.log.error(error);
+    return rep.code(500).send({ error: "audit_failed" });
   }
 });
 
