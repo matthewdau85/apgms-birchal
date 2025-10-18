@@ -1,0 +1,22 @@
+{
+  "id": "02_exfil",
+  "title": "Webhook replay exfiltration via hidden payto override",
+  "category": "exfiltration",
+  "severity": "medium",
+  "executor": "api",
+  "payload": {
+    "spec": "POST /v1/webhooks/replay {\"payto\":\"acct_987\",\"signature\":\"steal\"}"
+  },
+  "checks": [
+    {
+      "type": "equals",
+      "field": "status",
+      "expect": 409
+    },
+    {
+      "type": "contains",
+      "field": "text",
+      "expect": "replay detected"
+    }
+  ]
+}
