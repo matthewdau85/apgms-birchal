@@ -13,6 +13,11 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  designatedAccounts    DesignatedAccount[]
+  obligationSnapshots   ObligationSnapshot[]
+  settlementInstructions SettlementInstruction[]
+  discrepancyEvents     DiscrepancyEvent[]
+  complianceDocuments   ComplianceDocument[]
 }
 
 model User {
@@ -33,4 +38,90 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum SettlementStatus {
+  PENDING
+  SENT
+  SETTLED
+  FAILED
+}
+
+enum DiscrepancySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model DesignatedAccount {
+  id          String         @id @default(cuid())
+  org         Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  label       String
+  accountNo   String         @unique
+  bankName    String
+  currency    String         @default("AUD")
+  status      AccountStatus  @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  instructions SettlementInstruction[]
+}
+
+model ObligationSnapshot {
+  id              String   @id @default(cuid())
+  org             Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId           String
+  effectiveDate   DateTime
+  totalObligation Decimal
+  currency        String   @default("AUD")
+  generatedAt     DateTime @default(now())
+  notes           String?
+}
+
+model SettlementInstruction {
+  id               String            @id @default(cuid())
+  org              Org               @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId            String
+  designatedAccount DesignatedAccount? @relation(fields: [designatedAccountId], references: [id], onDelete: SetNull)
+  designatedAccountId String?
+  counterparty      String
+  amount            Decimal
+  currency          String            @default("AUD")
+  dueDate           DateTime
+  status            SettlementStatus  @default(PENDING)
+  instructionRef    String            @unique
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  discrepancies     DiscrepancyEvent[]
+}
+
+model DiscrepancyEvent {
+  id             String              @id @default(cuid())
+  org            Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  instruction    SettlementInstruction? @relation(fields: [instructionId], references: [id], onDelete: SetNull)
+  instructionId  String?
+  description    String
+  severity       DiscrepancySeverity @default(MEDIUM)
+  detectedAt     DateTime            @default(now())
+  resolvedAt     DateTime?
+  resolutionNote String?
+}
+
+model ComplianceDocument {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  title       String
+  documentType String
+  storageUrl  String
+  uploadedAt  DateTime @default(now())
+  expiresAt   DateTime?
 }
