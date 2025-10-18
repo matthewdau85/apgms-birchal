@@ -1,5 +1,6 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 import dotenv from "dotenv";
 
 // Load repo-root .env from src/
@@ -9,10 +10,28 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import pino from "pino";
+import loggingPlugin from "./plugins/logging";
+import { startOtel, shutdownOtel } from "./otel";
 import { prisma } from "../../../shared/src/db";
 
-const app = Fastify({ logger: true });
+await startOtel();
 
+const logger = pino({
+  level: process.env.LOG_LEVEL ?? "info",
+  base: undefined,
+  messageKey: "message",
+  formatters: {
+    level: (label) => ({ level: label }),
+  },
+});
+
+const app = Fastify({
+  logger,
+  genReqId: (req) => req.headers["x-request-id"]?.toString() ?? randomUUID(),
+});
+
+await app.register(loggingPlugin);
 await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
@@ -78,3 +97,10 @@ app.listen({ port, host }).catch((err) => {
   process.exit(1);
 });
 
+const close = async () => {
+  await app.close();
+  await shutdownOtel();
+};
+
+process.once("SIGTERM", close);
+process.once("SIGINT", close);
