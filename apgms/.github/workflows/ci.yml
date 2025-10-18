@@ -14,4 +14,6 @@ jobs:
           cache: 'pnpm'
       - run: pnpm i
       - run: pnpm -r build
+      - name: Golden tests
+        run: npm run golden
       - run: pnpm -r test
