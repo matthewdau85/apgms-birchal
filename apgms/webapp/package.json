@@ -1,1 +1,15 @@
-{"name":"@apgms/webapp","version":"0.1.0","private":true,"scripts":{"build":"echo build webapp","test":"echo test webapp"}}
+{
+  "name": "@apgms/webapp",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^5.4.0"
+  }
+}
