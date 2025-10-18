@@ -10,15 +10,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import healthRoutes from "./routes/health";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(healthRoutes);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
-
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
 // List users (email + org)
 app.get("/users", async () => {
@@ -77,4 +77,35 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
+
+const shutdownSignals: NodeJS.Signals[] = ["SIGINT", "SIGTERM"];
+let shuttingDown = false;
+
+const shutdown = async (signal: NodeJS.Signals) => {
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+  app.log.info({ signal }, "received shutdown signal");
+
+  try {
+    await app.close();
+  } catch (error) {
+    app.log.error({ err: error }, "error closing fastify instance");
+  }
+
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    app.log.error({ err: error }, "error disconnecting prisma");
+  }
+
+  process.exit(0);
+};
+
+for (const signal of shutdownSignals) {
+  process.on(signal, () => {
+    void shutdown(signal);
+  });
+}
 
