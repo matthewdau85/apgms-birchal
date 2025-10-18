@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
@@ -13,6 +14,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  policies  Policy[]
 }
 
 model User {
@@ -25,12 +27,178 @@ model User {
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  id         String        @id @default(cuid())
+  org        Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  date       DateTime
+  amount     Decimal
+  payee      String
+  desc       String
+  createdAt  DateTime      @default(now())
+  ledgerRefs LedgerEntry[]
+}
+
+model Policy {
+  id            String                 @id @default(cuid())
+  org           Org                    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  externalRef   String?                @unique
+  name          String
+  program       PolicyProgram
+  status        PolicyStatus           @default(DRAFT)
+  coverageStart DateTime
+  coverageEnd   DateTime?
+  allocationSets AllocationRuleSet[]
+  ledgerEntries  LedgerEntry[]
+  gateEvents     GateEvent[]
+  rptTokens      RptToken[]
+  remittances    PendingRemittance[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+model AllocationRuleSet {
+  id            String             @id @default(cuid())
+  policy        Policy             @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId      String
+  label         String
+  version       Int
+  status        AllocationRuleStatus @default(DRAFT)
+  ruleType      AllocationRuleType
+  definition    Json
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  gateEvents    GateEvent[]
+  ledgerEntries LedgerEntry[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([policyId, version])
+}
+
+model LedgerEntry {
+  id                 String             @id @default(cuid())
+  policy             Policy             @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId           String
+  allocationRuleSet  AllocationRuleSet? @relation(fields: [allocationRuleSetId], references: [id])
+  allocationRuleSetId String?
+  bankLine           BankLine?          @relation(fields: [bankLineId], references: [id])
+  bankLineId         String?
+  gateEvent          GateEvent?         @relation(fields: [gateEventId], references: [id])
+  gateEventId        String?
+  entryType          LedgerEntryType
+  source             LedgerEntrySource
+  amount             Decimal
+  occurredAt         DateTime
+  memo               String?
+  remittance         PendingRemittance? @relation("LedgerEntryRemittance")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([policyId, occurredAt])
+}
+
+model GateEvent {
+  id              String             @id @default(cuid())
+  policy          Policy             @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId        String
+  allocationSet   AllocationRuleSet? @relation(fields: [allocationSetId], references: [id])
+  allocationSetId String?
+  eventType       GateEventType
+  status          GateEventStatus    @default(PENDING)
+  payload         Json?
+  triggeredAt     DateTime            @default(now())
+  processedAt     DateTime?
+  ledgerEntries   LedgerEntry[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+model RptToken {
+  id         String      @id @default(cuid())
+  policy     Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId   String
+  token      String      @unique
+  kind       RptTokenKind @default(ACCESS)
+  expiresAt  DateTime
+  lastUsedAt DateTime?
+  createdAt  DateTime    @default(now())
+}
+
+model PendingRemittance {
+  id            String                  @id @default(cuid())
+  policy        Policy                  @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId      String
+  ledgerEntry   LedgerEntry?            @relation("LedgerEntryRemittance", fields: [ledgerEntryId], references: [id])
+  ledgerEntryId String?                 @unique
+  status        PendingRemittanceStatus @default(PREPARED)
+  amount        Decimal
+  scheduledFor  DateTime
+  submittedAt   DateTime?
+  settledAt     DateTime?
+  settlementRef String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+}
+
+enum PolicyProgram {
+  OWDA
+  BAS
+}
+
+enum PolicyStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum AllocationRuleStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum AllocationRuleType {
+  FIXED
+  PERCENTAGE
+  THRESHOLD
+}
+
+enum LedgerEntryType {
+  CREDIT
+  DEBIT
+  ADJUSTMENT
+}
+
+enum LedgerEntrySource {
+  BANK_LINE
+  MANUAL
+  SYSTEM
+}
+
+enum GateEventType {
+  POLICY_ACTIVATED
+  POLICY_DEACTIVATED
+  RULE_TRIGGERED
+  REMITTANCE_CREATED
+  REMITTANCE_SETTLED
+}
+
+enum GateEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+enum RptTokenKind {
+  ACCESS
+  REFRESH
+}
+
+enum PendingRemittanceStatus {
+  PREPARED
+  SUBMITTED
+  SETTLED
+  REJECTED
 }
