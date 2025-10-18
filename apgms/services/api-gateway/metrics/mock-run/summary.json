@@ -1,0 +1,56 @@
+{
+  "generatedAt": "2025-10-18T01:26:31.285Z",
+  "requests": [
+    {
+      "key": "GET /health",
+      "count": 220,
+      "avgDurationMs": 0.22693804999999698,
+      "p95DurationMs": 0.3243609999999535,
+      "maxDurationMs": 15.052647999999976
+    },
+    {
+      "key": "GET /bank-lines",
+      "count": 140,
+      "avgDurationMs": 33.61792459285717,
+      "p95DurationMs": 38.106800999999905,
+      "maxDurationMs": 38.694518000000244
+    },
+    {
+      "key": "GET /users",
+      "count": 90,
+      "avgDurationMs": 21.45618225555557,
+      "p95DurationMs": 24.290995999999723,
+      "maxDurationMs": 25.041905000000042
+    },
+    {
+      "key": "POST /bank-lines",
+      "count": 60,
+      "avgDurationMs": 51.08327288333341,
+      "p95DurationMs": 56.58666400000038,
+      "maxDurationMs": 63.48149300000114
+    }
+  ],
+  "dbOperations": [
+    {
+      "key": "db.bankLine.findMany",
+      "count": 140,
+      "avgDurationMs": 32.949526171428566,
+      "p95DurationMs": 37.542493999999806,
+      "maxDurationMs": 37.78494499999988
+    },
+    {
+      "key": "db.user.findMany",
+      "count": 90,
+      "avgDurationMs": 20.778418711111165,
+      "p95DurationMs": 23.63249799999994,
+      "maxDurationMs": 24.21196299999974
+    },
+    {
+      "key": "db.bankLine.create",
+      "count": 60,
+      "avgDurationMs": 49.91709973333341,
+      "p95DurationMs": 55.4541590000008,
+      "maxDurationMs": 62.398441000001185
+    }
+  ]
+}
