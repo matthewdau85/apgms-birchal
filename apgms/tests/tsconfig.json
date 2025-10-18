@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node", "vitest"],
+    "baseUrl": "../",
+    "paths": {
+      "@apgms/shared": ["shared/src/index.ts"],
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/api-gateway/app": ["services/api-gateway/src/app.ts"],
+      "@apgms/api-gateway/*": ["services/api-gateway/src/*"]
+    }
+  },
+  "include": ["**/*.ts"]
+}

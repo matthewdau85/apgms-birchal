@@ -1,0 +1,23 @@
+{
+  "name": "@apgms/tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "tsx ./bin/vitest.ts"
+  },
+  "dependencies": {
+    "@apgms/api-gateway": "workspace:*",
+    "@apgms/shared": "workspace:*"
+  },
+  "imports": {
+    "vitest": "./lib/vitest/index.ts",
+    "vitest/config": "./lib/vitest/index.ts",
+    "fast-check": "./lib/fast-check/index.ts",
+    "supertest": "./lib/supertest/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.1",
+    "typescript": "^5.9.3"
+  }
+}

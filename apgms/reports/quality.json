@@ -1,0 +1,54 @@
+{
+  "generatedAt": "2025-10-18T17:27:19.283Z",
+  "guardrails": [
+    {
+      "name": "unit",
+      "status": "pass",
+      "meta": {
+        "successes": 5,
+        "failures": 0
+      }
+    },
+    {
+      "name": "golden",
+      "status": "pass",
+      "meta": {
+        "successes": 3,
+        "failures": 0
+      }
+    },
+    {
+      "name": "red-team",
+      "status": "pass",
+      "meta": {
+        "successes": 3,
+        "failures": 0
+      }
+    },
+    {
+      "name": "schema",
+      "status": "pass",
+      "details": "optional_guardrail_missing"
+    },
+    {
+      "name": "readiness",
+      "status": "pass",
+      "details": "optional_guardrail_missing"
+    },
+    {
+      "name": "sca-sbom",
+      "status": "pass",
+      "details": "optional_guardrail_missing"
+    },
+    {
+      "name": "a11y",
+      "status": "pass",
+      "details": "optional_guardrail_missing"
+    }
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  }
+}

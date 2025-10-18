@@ -1,0 +1,8 @@
+{
+  "name": "golden",
+  "status": "pass",
+  "meta": {
+    "successes": 3,
+    "failures": 0
+  }
+}
