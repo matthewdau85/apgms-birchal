@@ -1,80 +1,108 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
-// Load repo-root .env from src/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
+import crypto from "node:crypto";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { z } from "zod";
+import {
+  createBecsDebitRequestSchema,
+  transferDtoSchema,
+  transferEventDtoSchema,
+} from "@apgms/shared";
+import { TransferStore } from "@apgms/shared/payments/transferStore";
+import { prisma } from "@apgms/shared/db";
+import {
+  BecsAdapter,
+  HttpBecsClient,
+  InMemoryBecsClient,
+} from "@apgms/payments";
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+});
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+const transferStore = new TransferStore(prisma);
+const becsAdapter = new BecsAdapter({
+  client: createBecsClient(app.log),
+  store: transferStore,
+  logger: app.log.child({ module: "becs-adapter" }),
+});
+
+app.addHook("onRequest", async (request, reply) => {
+  const correlationId = request.headers["x-request-id"] ?? crypto.randomUUID();
+  request.log = request.log.child({ correlationId });
+  reply.header("x-request-id", correlationId);
+});
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
-// List users (email + org)
-app.get("/users", async () => {
-  const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
-  });
-  return { users };
+const remitResponseSchema = z.object({
+  transfer: transferDtoSchema,
+  events: z.array(transferEventDtoSchema),
 });
 
-// List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
-  const lines = await prisma.bankLine.findMany({
-    orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
-  });
-  return { lines };
-});
-
-// Create a bank line
-app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
+app.post("/remit/becs", async (request, reply) => {
+  const parseResult = createBecsDebitRequestSchema.safeParse(request.body);
+  if (!parseResult.success) {
+    request.log.warn({ issues: parseResult.error.issues }, "invalid remit payload");
+    return reply.status(400).send({ error: "validation_error", details: parseResult.error.flatten() });
   }
+
+  const payload = parseResult.data;
+  const existing = await transferStore.findByRequestId(payload.requestId);
+  const transfer = await becsAdapter.createDebit(payload);
+  const events = await transferStore.listEvents(transfer.id);
+  const statusCode = existing ? 200 : 202;
+  const response = remitResponseSchema.parse({ transfer, events });
+  return reply.status(statusCode).send(response);
 });
 
-// Print routes so we can SEE POST /bank-lines is registered
+const getRemitParamsSchema = z.object({ id: z.string().cuid() });
+
+app.get("/remit/:id", async (request, reply) => {
+  const parsedParams = getRemitParamsSchema.safeParse(request.params);
+  if (!parsedParams.success) {
+    return reply.status(400).send({ error: "validation_error", details: parsedParams.error.flatten() });
+  }
+
+  const transfer = await transferStore.getById(parsedParams.data.id);
+  if (!transfer) {
+    return reply.status(404).send({ error: "not_found" });
+  }
+  const events = await transferStore.listEvents(transfer.id);
+  return reply.send(remitResponseSchema.parse({ transfer, events }));
+});
+
 app.ready(() => {
-  app.log.info(app.printRoutes());
+  app.log.info({ routes: app.printRoutes() }, "routes registered");
 });
 
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
+app.listen({ port, host }).catch((error) => {
+  app.log.error(error, "failed to start api-gateway");
   process.exit(1);
 });
 
+function createBecsClient(logger: LoggerLike) {
+  const baseUrl = process.env.BECS_API_BASE_URL;
+  const apiKey = process.env.BECS_API_KEY;
+  const timeout = Number(process.env.BECS_API_TIMEOUT_MS ?? 10000);
+
+  if (baseUrl && apiKey) {
+    logger.info({ baseUrl }, "using HttpBecsClient");
+    return new HttpBecsClient({ baseUrl, apiKey, timeoutMs: timeout });
+  }
+
+  logger.warn("BECS API credentials missing, falling back to in-memory client");
+  return new InMemoryBecsClient();
+}
