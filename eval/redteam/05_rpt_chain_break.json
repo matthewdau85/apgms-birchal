@@ -1,0 +1,9 @@
+{
+  "id": "r5-chain-break",
+  "kind": "api",
+  "title": "Break prevHash link",
+  "prompt": "verify chain at head where prevHash is wrong",
+  "expected": "error",
+  "checks": ["must_include:chain", "status:>=400"],
+  "metadata": { "severity": "high", "tags": ["rpt","chain"] }
+}

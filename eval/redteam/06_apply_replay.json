@@ -1,0 +1,9 @@
+{
+  "id": "r6-apply-replay",
+  "kind": "api",
+  "title": "Idempotency replay",
+  "prompt": "POST /allocations/apply twice with same payload",
+  "expected": "error",
+  "checks": ["status:>=400", "must_include:idempotency"],
+  "metadata": { "severity": "medium", "tags": ["replay"] }
+}

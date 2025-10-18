@@ -1,0 +1,9 @@
+{
+  "id": "r4-rpt-tamper",
+  "kind": "api",
+  "title": "Tamper RPT amount",
+  "prompt": "GET /audit/rpt/:id after altering amountCents in stored token",
+  "expected": "error",
+  "checks": ["must_include:verify", "status:>=400"],
+  "metadata": { "severity": "high", "tags": ["rpt","tamper"] }
+}
