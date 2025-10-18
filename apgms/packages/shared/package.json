@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=prisma/schema.prisma",
+    "prisma:seed": "prisma db seed --schema=prisma/schema.prisma",
     "build": "echo building shared"
   },
   "dependencies": {
@@ -13,5 +14,8 @@
   "devDependencies": {
     "prisma": "6.17.1",
     "typescript": "^5.9.3"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
