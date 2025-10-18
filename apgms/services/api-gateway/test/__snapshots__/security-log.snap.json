@@ -1,0 +1,36 @@
+{
+  "missing-token-401": {
+    "decision": "deny",
+    "event": "auth.missing_token",
+    "reason": "missing_token",
+    "route": "/v1/secure/documents"
+  },
+  "role-mismatch-403": {
+    "decision": "deny",
+    "event": "auth.role_mismatch",
+    "orgId": "org_456",
+    "principal": {
+      "id": "user_123",
+      "roles": [
+        "viewer"
+      ]
+    },
+    "reason": "role_mismatch",
+    "requiredRoles": [
+      "admin"
+    ],
+    "route": "/v1/admin/reports"
+  },
+  "replay-reject": {
+    "decision": "deny",
+    "event": "auth.replay_rejected",
+    "expectedBodyHash": "sha256:expected",
+    "orgId": "org_654",
+    "principal": {
+      "id": "user_321"
+    },
+    "reason": "replay_body_mismatch",
+    "receivedBodyHash": "sha256:received",
+    "route": "/v1/secure/documents"
+  }
+}
