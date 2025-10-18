@@ -1,0 +1,10 @@
+{
+  "decision": "deny",
+  "event": "auth_failure",
+  "ip": "203.0.113.42",
+  "orgId": "org-456",
+  "principal": "user-123",
+  "reason": "missing_authorization_header",
+  "route": "/bank-lines",
+  "ts": "<ts>"
+}
