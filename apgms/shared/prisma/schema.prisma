@@ -13,6 +13,9 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  ledger    LedgerEntry[]
+  rptTokens RptToken[]
+  audits    AuditBlob[]
 }
 
 model User {
@@ -32,5 +35,40 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  createdAt DateTime @default(now())
+}
+
+model LedgerEntry {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  memo      String?
+  amount    Decimal
+  createdAt DateTime @default(now())
+  rptTokens RptToken[]
+}
+
+model RptToken {
+  id            String     @id @default(cuid())
+  org           Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  ledgerEntry   LedgerEntry @relation(fields: [ledgerEntryId], references: [id], onDelete: Cascade)
+  ledgerEntryId String
+  payload       Json
+  signature     String
+  createdAt     DateTime   @default(now())
+}
+
+model AuditBlob {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  type      String
+  payload   Json
+  hash      String
+  prevHash  String?
+  prev      AuditBlob? @relation("AuditBlobPrev", fields: [prevId], references: [id])
+  prevId    String?
+  next      AuditBlob[] @relation("AuditBlobPrev")
   createdAt DateTime @default(now())
 }
