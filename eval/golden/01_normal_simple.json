@@ -1,0 +1,10 @@
+{
+  "id": "g1-normal-simple",
+  "kind": "route",
+  "route": "allocations.preview",
+  "input": {
+    "orgId": "org_demo",
+    "bankLine": { "id": "bl_001", "amountCents": 100000, "date": "2025-09-01T00:00:00Z", "payee": "Customer A", "desc": "Invoice 1001" }
+  },
+  "expect": { "valid_schema": true, "rules": ["conservation","non_negative"] }
+}
