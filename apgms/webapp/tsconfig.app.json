@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "jsx": "react-jsx",
+    "baseUrl": "./src",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "types": ["vite/client", "jest"],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["src", "setupTests.ts"],
+  "exclude": ["src/**/*.test.tsx"]
+}
