@@ -1,0 +1,40 @@
+{
+  "ci": {
+    "collect": {
+      "staticDistDir": "webapp",
+      "url": [
+        "/",
+        "/bank-lines/"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "formFactor": "desktop",
+        "screenEmulation": {
+          "mobile": false,
+          "width": 1280,
+          "height": 720,
+          "deviceScaleFactor": 1
+        },
+        "throttlingMethod": "devtools"
+      }
+    },
+    "assert": {
+      "assertions": {
+        "first-contentful-paint": [
+          "error",
+          {
+            "maxNumericValue": 2000,
+            "aggregationMethod": "optimistic"
+          }
+        ],
+        "total-blocking-time": [
+          "error",
+          {
+            "maxNumericValue": 200,
+            "aggregationMethod": "optimistic"
+          }
+        ]
+      }
+    }
+  }
+}
