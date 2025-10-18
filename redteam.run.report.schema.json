@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/redteam.run.report.schema.json",
+  "title": "Red Team Runner Report",
+  "type": "object",
+  "required": [
+    "run_id",
+    "generated_at",
+    "totals",
+    "cases",
+    "failures"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "description": "Unique identifier correlating to the runner execution"
+    },
+    "runner_version": {
+      "type": "string",
+      "description": "Semantic version or git sha of the runner implementation"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the report was produced"
+    },
+    "environment": {
+      "type": "object",
+      "description": "Execution environment metadata",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    },
+    "totals": {
+      "type": "object",
+      "description": "Aggregate counts for the run",
+      "required": [
+        "total",
+        "passed",
+        "failed",
+        "errored",
+        "refused"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errored": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "refused": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_kind": {
+          "type": "object",
+          "description": "Breakdown of totals by case kind",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["total", "passed", "failed", "errored", "refused"],
+            "additionalProperties": false,
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "passed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "errored": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "refused": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "description": "Per-case execution results",
+      "items": {
+        "$ref": "#/$defs/caseResult"
+      }
+    },
+    "failures": {
+      "type": "array",
+      "description": "Summary of cases that did not meet expectations",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Primary explanation for the failure"
+          },
+          "failed_checks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Identifiers of the checks that failed"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "checkResult": {
+      "type": "object",
+      "required": ["check", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "check": {
+          "type": "string",
+          "description": "Identifier or descriptor of the evaluated check"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error"],
+          "description": "Outcome of the check"
+        },
+        "message": {
+          "type": "string",
+          "description": "Diagnostic information provided by the runner"
+        }
+      }
+    },
+    "caseResult": {
+      "type": "object",
+      "required": [
+        "case_id",
+        "kind",
+        "expected_outcome",
+        "actual_outcome",
+        "result",
+        "checks"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "description": "Identifier of the executed case"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["llm", "api"]
+        },
+        "expected_outcome": {
+          "type": "string",
+          "enum": ["refuse", "error", "allowed"],
+          "description": "Declared expected outcome from the case definition"
+        },
+        "actual_outcome": {
+          "type": "string",
+          "enum": ["refuse", "error", "allowed"],
+          "description": "Outcome observed by the runner"
+        },
+        "result": {
+          "type": "string",
+          "enum": ["pass", "fail", "error"],
+          "description": "Overall evaluation result for the case"
+        },
+        "duration_ms": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Execution time for the case in milliseconds"
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/checkResult"
+          },
+          "description": "Outcomes of the checks executed for the case"
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "uri"],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Semantic type of the artifact"
+              },
+              "uri": {
+                "type": "string",
+                "format": "uri",
+                "description": "Resolvable location for the artifact"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Supplementary artifacts captured during execution"
+        }
+      }
+    }
+  }
+}
