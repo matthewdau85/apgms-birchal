@@ -1,0 +1,35 @@
+{
+  "description": "Amounts are rounded to the nearest cent while preserving debit invariants.",
+  "cases": [
+    {
+      "name": "debit_rounding_half_up",
+      "tags": ["debit", "rounding"],
+      "input": {
+        "org_id": "demo-org",
+        "gate_open": true,
+        "payload": {
+          "type": "debit",
+          "amount": { "value": 199.999, "currency": "AUD" },
+          "narrative": "Card fee",
+          "timestamp": "2024-07-02T08:45:13.000Z"
+        }
+      },
+      "expected": {
+        "status": 201,
+        "body": {
+          "ok": true,
+          "gate": { "open": true },
+          "result": {
+            "normalizedAmount": -200,
+            "ledger": {
+              "debit": 200,
+              "credit": 0,
+              "net": -200,
+              "currency": "AUD"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
