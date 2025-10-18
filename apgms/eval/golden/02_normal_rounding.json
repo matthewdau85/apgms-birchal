@@ -1,0 +1,13 @@
+{
+  "route": "allocations.preview",
+  "input": {
+    "amount": 105.378,
+    "currency": "AUD",
+    "allocationCount": 3
+  },
+  "expect": {
+    "status": "ok",
+    "perAllocation": 35.13,
+    "currency": "AUD"
+  }
+}

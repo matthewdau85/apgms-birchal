@@ -1,0 +1,13 @@
+{
+  "route": "allocations.preview",
+  "input": {
+    "amount": "250.40",
+    "currency": "NZD",
+    "allocationCount": 4
+  },
+  "expect": {
+    "status": "ok",
+    "perAllocation": 62.6,
+    "currency": "NZD"
+  }
+}

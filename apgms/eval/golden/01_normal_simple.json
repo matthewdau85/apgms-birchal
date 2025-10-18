@@ -1,0 +1,10 @@
+{
+  "route": "dashboard",
+  "input": {
+    "metrics": [120, 80, 50]
+  },
+  "expect": {
+    "status": "ok",
+    "total": 250
+  }
+}

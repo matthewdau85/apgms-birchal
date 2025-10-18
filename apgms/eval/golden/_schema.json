@@ -1,0 +1,20 @@
+{
+  "$schema": "https://example.com/golden-case.schema.json",
+  "description": "Golden test case format for route evaluation.",
+  "type": "object",
+  "required": ["route", "input", "expect"],
+  "properties": {
+    "route": {
+      "description": "Identifier of the handler to invoke (e.g. dashboard, allocations.preview, allocations.apply).",
+      "type": "string"
+    },
+    "input": {
+      "description": "Request payload forwarded to the handler.",
+      "type": "object"
+    },
+    "expect": {
+      "description": "Expected response payload returned by the handler.",
+      "type": "object"
+    }
+  }
+}
