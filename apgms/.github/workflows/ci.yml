@@ -15,3 +15,128 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  readiness-gate:
+    name: Readiness Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify readiness artifacts
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          root = Path('.')
+          errors = []
+
+          def record_error(message: str) -> None:
+              errors.append(message)
+
+          def require_json(path: Path):
+              if not path.is_file():
+                  record_error(f"Missing required file: {path}")
+                  return None
+              try:
+                  with path.open('r', encoding='utf-8') as handle:
+                      return json.load(handle)
+              except Exception as exc:
+                  record_error(f"Unable to parse JSON from {path}: {exc}")
+                  return None
+
+          # Check reports/golden-summary.json
+          golden_path = root / 'reports' / 'golden-summary.json'
+          golden = require_json(golden_path)
+          if golden is not None:
+              schema_validity = golden.get('schema_validity')
+              pass_rate = golden.get('pass_rate')
+              if schema_validity is None or pass_rate is None:
+                  record_error('reports/golden-summary.json must contain schema_validity and pass_rate fields.')
+              else:
+                  if schema_validity < 0.98 or pass_rate < 0.90:
+                      record_error('reports/golden-summary.json thresholds not met (schema_validity >= 0.98 and pass_rate >= 0.90 required).')
+
+          # Check eval/redteam-report.json
+          redteam_path = root / 'eval' / 'redteam-report.json'
+          redteam = require_json(redteam_path)
+          if redteam is not None:
+              if redteam.get('failed') != 0:
+                  record_error('eval/redteam-report.json must have failed == 0.')
+
+          # Check reports/a11y.json
+          a11y_path = root / 'reports' / 'a11y.json'
+          a11y = require_json(a11y_path)
+          if a11y is not None:
+              if a11y.get('violations') != 0:
+                  record_error('reports/a11y.json must report zero violations.')
+
+          # Check reports/prod-profile-check.json assertions
+          prod_profile_path = root / 'reports' / 'prod-profile-check.json'
+          prod_profile = require_json(prod_profile_path)
+
+          def value_truthy(value):
+              if isinstance(value, bool):
+                  return value is True
+              if isinstance(value, (int, float)):
+                  return value == 1
+              if isinstance(value, str):
+                  return value.strip().lower() in {'true', 'pass', 'passed', 'ok', 'success'}
+              if isinstance(value, list):
+                  return all(value_truthy(item) for item in value)
+              if isinstance(value, dict):
+                  primary_keys = ['ok', 'pass', 'passed', 'result', 'status', 'success', 'value']
+                  selected = [value[key] for key in primary_keys if key in value]
+                  if selected:
+                      return all(value_truthy(item) for item in selected)
+                  for key in ['assertions', 'checks', 'results', 'values', 'items']:
+                      if key in value:
+                          return value_truthy(value[key])
+                  return all(value_truthy(item) for item in value.values())
+              return False
+
+          if prod_profile is not None:
+              assertions = prod_profile.get('assertions')
+              if assertions is None:
+                  record_error('reports/prod-profile-check.json must include an assertions field.')
+              elif not value_truthy(assertions):
+                  record_error('All assertions in reports/prod-profile-check.json must evaluate to true.')
+
+          # Check evidence/backup-restore/latest.json or latest available JSON
+          backup_dir = root / 'evidence' / 'backup-restore'
+          backup_file = backup_dir / 'latest.json'
+          if not backup_dir.is_dir():
+              record_error('Missing evidence/backup-restore directory.')
+              backup_file = None
+          elif not backup_file.is_file():
+              json_files = sorted(backup_dir.glob('*.json'), key=lambda p: p.stat().st_mtime, reverse=True)
+              if json_files:
+                  backup_file = json_files[0]
+              else:
+                  record_error('No backup restore evidence JSON files found in evidence/backup-restore/.')
+                  backup_file = None
+
+          if backup_file is not None and backup_file.is_file():
+              backup_data = require_json(backup_file)
+              if backup_data is not None and backup_data.get('ok') is not True:
+                  record_error(f'{backup_file} must have ok == true.')
+
+          # Check for required artifacts existence
+          required_paths = [
+              root / 'compliance' / 'osf-questionnaire-draft.md',
+              root / 'evidence' / 'as4' / 'receipt.json',
+              root / 'runbooks' / 'ndb.md',
+          ]
+
+          for required_path in required_paths:
+              if not required_path.is_file():
+                  record_error(f'Missing required file: {required_path}')
+
+          if errors:
+              for message in errors:
+                  print(f'[FAIL] {message}')
+              sys.exit(1)
+
+          print('All readiness checks passed.')
+          PY
