@@ -18,7 +18,10 @@ await app.register(cors, { origin: true });
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+const healthPayload = () => ({ ok: true, service: "api-gateway" });
+
+app.get("/health", async () => healthPayload());
+app.get("/healthz", async () => healthPayload());
 
 // List users (email + org)
 app.get("/users", async () => {
