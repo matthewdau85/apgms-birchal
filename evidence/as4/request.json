@@ -1,0 +1,12 @@
+{
+  "devStub": true,
+  "description": "AS4 hello-world request placeholder",
+  "messageInfo": {
+    "messageId": "urn:uuid:00000000-0000-0000-0000-000000000000",
+    "timestamp": "2025-01-01T00:00:00Z"
+  },
+  "payload": {
+    "profile": "hello-world",
+    "note": "Populate with the real business document payload in production"
+  }
+}
