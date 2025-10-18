@@ -1,0 +1,27 @@
+ControlId,Description,Required,Status,EvidencePath
+V1.1.1,Define security requirements for the application,no,PASS,docs/security/requirements.md
+V1.1.2,Maintain threat models aligned with architecture,no,NA,docs/security/threat-models.md
+V2.1.1,Enforce secure authentication for all users,yes,PASS,docs/security/authentication.md
+V2.1.4,Implement multi-factor authentication for administrators,yes,PASS,docs/security/mfa.md
+V2.2.2,Protect against credential stuffing and brute force attacks,yes,PASS,logs/security/rate-limiting.log
+V3.1.1,Implement secure session management,yes,PASS,docs/security/session-management.md
+V3.2.2,Regenerate session identifiers on privilege change,yes,PASS,tests/security/session-rotation.test.ts
+V3.4.1,Ensure session termination on logout,yes,PASS,docs/security/logout-procedure.md
+V4.1.1,Validate and sanitize all user inputs,no,PASS,shared/validation/input-sanitizer.ts
+V4.2.3,Enforce server side validation for all parameters,no,PASS,services/api/validation.ts
+V4.3.2,Escape output to prevent injection attacks,no,PASS,webapp/src/security/output-escaping.ts
+V5.1.1,Apply strict access control checks to all requests,yes,PASS,docs/security/access-control.md
+V5.2.2,Implement least privilege for service accounts,yes,PASS,infra/iam/service-account-policies.md
+V5.3.1,Log and monitor authorization failures,yes,PASS,logs/security/authorization-failures.log
+V6.1.1,Secure cryptographic key management processes,no,PASS,infra/security/key-management.md
+V6.2.2,Use approved cryptographic algorithms,no,PASS,docs/security/cryptography.md
+V7.1.1,Protect data at rest with encryption,yes,PASS,infra/storage/encryption.md
+V7.2.2,Encrypt data in transit,yes,PASS,infra/network/tls-configuration.md
+V7.3.3,Implement data retention and disposal procedures,yes,PASS,docs/security/data-retention.md
+V8.1.1,Securely configure security logging,no,PASS,infra/observability/logging-config.md
+V8.2.2,Monitor for suspicious activities,no,PASS,infra/observability/monitoring.md
+V9.1.1,Protect APIs with proper authentication,no,PASS,services/api/authentication.ts
+V10.1.1,Validate all input in APIs,no,PASS,services/api/input-validation.ts
+V11.1.1,Perform regular security testing,no,NA,docs/security/testing-schedule.md
+V12.1.1,Maintain incident response procedures,no,PASS,docs/security/incident-response.md
+V13.1.1,Ensure configuration hardening across environments,no,PASS,infra/config/hardening.md
