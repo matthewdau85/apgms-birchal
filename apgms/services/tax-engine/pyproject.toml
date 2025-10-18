@@ -1,7 +1,22 @@
-﻿[tool.poetry]
-name='apgms-tax-engine'
-version='0.1.0'
+[tool.poetry]
+name = "apgms-tax-engine"
+version = "0.1.0"
+description = "APGMS tax engine service"
+package-mode = false
+
 [tool.poetry.dependencies]
-python='^3.10'
-fastapi='*'
-uvicorn='*'
+python = "^3.10"
+fastapi = "^0.115.0"
+uvicorn = "^0.30.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+httpx = "^0.27.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
