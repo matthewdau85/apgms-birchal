@@ -33,4 +33,28 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+  ledgerEntries LedgerEntry[]
+}
+
+model LedgerEntry {
+  id          String    @id @default(cuid())
+  bankLine    BankLine  @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId  String
+  allocations Json
+  policyHash  String
+  explain     Json
+  createdAt   DateTime  @default(now())
+  rptToken    RptToken?
+}
+
+model RptToken {
+  id           String       @id @default(cuid())
+  ledgerEntry  LedgerEntry  @relation(fields: [ledgerEntryId], references: [id], onDelete: Cascade)
+  ledgerEntryId String      @unique
+  payload      Json
+  hash         String
+  signature    String
+  publicKey    String
+  prevHash     String?
+  createdAt    DateTime     @default(now())
 }
