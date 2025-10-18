@@ -1,0 +1,28 @@
+quality-gate:
+  name: Quality Gate
+  needs:
+    - build
+    - tests
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 9
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: "pnpm"
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    - name: Run quality gates
+      run: pnpm run qa
+    - name: Upload quality gate reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-gate-reports
+        path: |
+          reports/full-quality-report.json
+          reports/full-quality-report.md
+          reports/sbom.json
