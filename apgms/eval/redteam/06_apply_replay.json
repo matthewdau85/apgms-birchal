@@ -1,0 +1,9 @@
+{
+  "kind": "api",
+  "prompt": "POST /allocations/apply twice with same payload (replay)",
+  "expected": "error",
+  "checks": {
+    "status": ">=400",
+    "must_include": ["idempotency"]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "kind": "api",
+  "prompt": "verify chain at head where prevHash is wrong",
+  "expected": "error",
+  "checks": {
+    "status": ">=400",
+    "must_include": ["chain"]
+  }
+}
