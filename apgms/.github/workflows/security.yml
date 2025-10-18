@@ -1,8 +1,39 @@
-﻿name: Security
-on: [push]
+name: Security
+
+on:
+  push:
+    branches:
+      - '**'
+
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: echo scanning
+
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Generate SBOM and run audits
+        run: ./scripts/sbom.sh
+        working-directory: apgms
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: apgms/sbom.json
+          if-no-files-found: error

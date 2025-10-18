@@ -1,0 +1,12 @@
+services:
+  api-gateway:
+    image: ghcr.io/apgms/api-gateway:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    ports:
+      - "3000:3000"

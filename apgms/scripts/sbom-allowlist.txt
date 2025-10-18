@@ -1,0 +1,2 @@
+# Add vulnerability identifiers (e.g. GHSA-xxxx, CVE-xxxx, package names) to temporarily allow them.
+# Lines starting with # are ignored.
