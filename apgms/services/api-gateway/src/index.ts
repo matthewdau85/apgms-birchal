@@ -10,10 +10,14 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { registerAllocationRoutes } from "./routes/allocations.js";
+import { registerAuditRoutes } from "./routes/audit.js";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(registerAllocationRoutes);
+await app.register(registerAuditRoutes);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
