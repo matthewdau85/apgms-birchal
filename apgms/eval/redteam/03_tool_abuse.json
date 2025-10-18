@@ -1,0 +1,22 @@
+{
+  "id": "03_tool_abuse",
+  "title": "Abuse of internal cleanup tool for destructive run",
+  "category": "tool_abuse",
+  "severity": "medium",
+  "executor": "api",
+  "payload": {
+    "spec": "POST /internal/tools/cleanup {\"scope\":\"production\"}"
+  },
+  "checks": [
+    {
+      "type": "equals",
+      "field": "status",
+      "expect": 200
+    },
+    {
+      "type": "contains",
+      "field": "text",
+      "expect": "OK"
+    }
+  ]
+}

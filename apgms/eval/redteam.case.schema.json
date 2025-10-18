@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apgms.local/schemas/redteam.case.schema.json",
+  "title": "Red Team Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "category",
+    "severity",
+    "executor",
+    "payload",
+    "checks"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^\\d{2}_[a-z0-9]+(?:_[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "injection",
+        "exfiltration",
+        "tool_abuse",
+        "other"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "executor": {
+      "type": "string",
+      "enum": [
+        "llm",
+        "api"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spec": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "field",
+          "expect"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "contains",
+              "equals"
+            ]
+          },
+          "field": {
+            "type": "string",
+            "enum": [
+              "text",
+              "status"
+            ]
+          },
+          "expect": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "negate": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
