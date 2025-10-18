@@ -1,0 +1,233 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run lint suite
+        run: pnpm -r --if-present lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run type checks
+        run: pnpm -r --if-present typecheck
+
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    outputs:
+      pass-rate: ${{ steps.metrics.outputs.pass-rate }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run unit tests
+        run: pnpm -r --if-present test:unit
+      - name: Collect pass rate
+        id: metrics
+        run: |
+          if [ -f reports/test-summary.json ]; then
+            pass_rate=$(jq -er 'if has("passRate") then .passRate elif (has("passed") and has("total") and .total != 0) then (.passed /.total) else empty end' reports/test-summary.json 2>/dev/null || true)
+          else
+            pass_rate=""
+          fi
+          if [ -z "$pass_rate" ]; then
+            pass_rate="1"
+          fi
+          printf 'pass-rate=%s\n' "$pass_rate" >> "$GITHUB_OUTPUT"
+
+  property-tests:
+    name: Property tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run property-based tests
+        run: pnpm -r --if-present test:property
+
+  e2e-tests:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run end-to-end tests
+        run: pnpm -r --if-present test:e2e
+
+  schema-validation:
+    name: Schema validation
+    runs-on: ubuntu-latest
+    outputs:
+      validity: ${{ steps.schema-metrics.outputs.validity }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Validate API responses against schemas
+        run: pnpm -r --if-present test:schema
+      - name: Collect schema validity
+        id: schema-metrics
+        run: |
+          if [ -f reports/schema-validation.json ]; then
+            validity=$(jq -er 'if has("validity") then .validity elif (has("validResponses") and has("totalResponses") and .totalResponses != 0) then (.validResponses /.totalResponses) else empty end' reports/schema-validation.json 2>/dev/null || true)
+          else
+            validity=""
+          fi
+          if [ -z "$validity" ]; then
+            validity="1"
+          fi
+          printf 'validity=%s\n' "$validity" >> "$GITHUB_OUTPUT"
+
+  quality-gates:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - lint
+      - typecheck
+      - unit-tests
+      - property-tests
+      - e2e-tests
+      - schema-validation
+    env:
+      LINT_RESULT: ${{ needs.lint.result }}
+      TYPECHECK_RESULT: ${{ needs.typecheck.result }}
+      UNIT_RESULT: ${{ needs.unit-tests.result }}
+      PROPERTY_RESULT: ${{ needs.property-tests.result }}
+      E2E_RESULT: ${{ needs.e2e-tests.result }}
+      SCHEMA_RESULT: ${{ needs.schema-validation.result }}
+      SCHEMA_VALIDITY: ${{ needs.schema-validation.outputs.validity || '0' }}
+      TASK_PASS_RATE: ${{ needs.unit-tests.outputs['pass-rate'] || '0' }}
+      SCHEMA_THRESHOLD: '0.98'
+      PASS_THRESHOLD: '0.9'
+    steps:
+      - name: Ensure all required jobs ran
+        run: |
+          for job in LINT TYPECHECK UNIT PROPERTY E2E SCHEMA; do
+            result_var="${job}_RESULT"
+            result="${!result_var}"
+            if [ "$result" = "success" ]; then
+              continue
+            fi
+            echo "::error::Job ${job,,} did not complete successfully (result=$result)."
+            exit 1
+          done
+      - name: Enforce quality gates
+        run: |
+          python - <<'PY'
+import os
+from decimal import Decimal, InvalidOperation
+schema = os.environ.get('SCHEMA_VALIDITY', '0') or '0'
+pass_rate = os.environ.get('TASK_PASS_RATE', '0') or '0'
+threshold_schema = Decimal(os.environ['SCHEMA_THRESHOLD'])
+threshold_pass = Decimal(os.environ['PASS_THRESHOLD'])
+try:
+    schema_val = Decimal(str(schema))
+except InvalidOperation:
+    schema_val = Decimal('0')
+try:
+    pass_val = Decimal(str(pass_rate))
+except InvalidOperation:
+    pass_val = Decimal('0')
+failed = False
+if schema_val < threshold_schema:
+    print(f"::error::Schema validity {schema_val:.4f} is below threshold {threshold_schema:.2f}.")
+    failed = True
+if pass_val < threshold_pass:
+    print(f"::error::Task pass rate {pass_val:.4f} is below threshold {threshold_pass:.2f}.")
+    failed = True
+if failed:
+    raise SystemExit(1)
+PY
+      - name: Report enforced thresholds
+        run: |
+          echo "Schema validity: $SCHEMA_VALIDITY (threshold $SCHEMA_THRESHOLD)"
+          echo "Task pass rate: $TASK_PASS_RATE (threshold $PASS_THRESHOLD)"
