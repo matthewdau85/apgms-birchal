@@ -10,10 +10,12 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import healthRoutes from "./routes/health";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(healthRoutes, { prisma });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -73,8 +75,44 @@ app.ready(() => {
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
+let isShuttingDown = false;
+
+const shutdown = async (signal: NodeJS.Signals) => {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  app.log.info({ signal }, "received shutdown signal");
+
+  try {
+    await app.close();
+  } catch (err) {
+    app.log.error({ err }, "error while closing fastify instance");
+  }
+
+  try {
+    await prisma.$disconnect();
+  } catch (err) {
+    app.log.error({ err }, "error while disconnecting prisma");
+  }
+};
+
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.once(signal, () => {
+    void shutdown(signal);
+  });
+}
+
+app.listen({ port, host }).catch(async (err) => {
   app.log.error(err);
+
+  try {
+    await prisma.$disconnect();
+  } catch (disconnectErr) {
+    app.log.error({ err: disconnectErr }, "error while disconnecting prisma after listen failure");
+  }
+
   process.exit(1);
 });
 
