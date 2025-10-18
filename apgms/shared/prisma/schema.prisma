@@ -34,3 +34,12 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model AccessLog {
+  id           String   @id @default(cuid())
+  event        String
+  orgId        String
+  principalId  String
+  subjectEmail String
+  createdAt    DateTime @default(now())
+}

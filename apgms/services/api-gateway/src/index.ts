@@ -10,8 +10,19 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import adminDataRoutes from "./routes/admin.data";
 
 const app = Fastify({ logger: true });
+
+app.decorate("db", prisma);
+app.decorate("secLog", (entry: {
+  event: string;
+  orgId: string;
+  principal: string;
+  subjectEmail: string;
+}) => {
+  app.log.info({ event: entry.event, ...entry }, "security_event");
+});
 
 await app.register(cors, { origin: true });
 
@@ -19,6 +30,8 @@ await app.register(cors, { origin: true });
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+
+await app.register(adminDataRoutes);
 
 // List users (email + org)
 app.get("/users", async () => {
