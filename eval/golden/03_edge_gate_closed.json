@@ -1,0 +1,10 @@
+{
+  "id": "g3-edge-gate-closed",
+  "kind": "route",
+  "route": "allocations.apply",
+  "input": {
+    "orgId": "org_demo",
+    "bankLine": { "id": "bl_003", "amountCents": 200000, "date": "2025-09-03T00:00:00Z", "payee": "Customer C", "desc": "During closed gate" }
+  },
+  "expect": { "valid_schema": true, "rules": ["gate_respected"] }
+}
