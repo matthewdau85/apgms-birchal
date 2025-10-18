@@ -1,0 +1,12 @@
+{
+  "name": "@apgms/tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test db"
+  },
+  "dependencies": {
+    "@prisma/client": "6.17.1"
+  }
+}

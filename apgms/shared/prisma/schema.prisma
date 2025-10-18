@@ -1,27 +1,31 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   users     User[]
   lines     BankLine[]
+  policies  Policy[]
+  audits    AuditTrail[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String    @id @default(cuid())
+  email     String    @unique
   password  String
-  createdAt DateTime @default(now())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  org       Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
+  audits    AuditTrail[]
 }
 
 model BankLine {
@@ -33,4 +37,71 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+model Policy {
+  id          String                    @id @default(cuid())
+  org         Org                       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String?
+  isActive    Boolean                   @default(true)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  gates       PolicyGate[]
+  tokens      ReconciliationPassToken[]
+
+  @@index([orgId])
+}
+
+model Gate {
+  id          String       @id @default(cuid())
+  key         String       @unique
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  policies    PolicyGate[]
+}
+
+model PolicyGate {
+  id        String   @id @default(cuid())
+  policy    Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId  String
+  gate      Gate     @relation(fields: [gateId], references: [id], onDelete: Cascade)
+  gateId    String
+  sequence  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([policyId, gateId])
+  @@index([policyId])
+}
+
+model ReconciliationPassToken {
+  id        String   @id @default(cuid())
+  policy    Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId  String
+  token     String   @unique
+  expiresAt DateTime?
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([policyId])
+}
+
+model AuditTrail {
+  id         String   @id @default(cuid())
+  org        Org?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId      String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     String?
+  entityType String
+  entityId   String
+  action     String
+  changes    Json?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([orgId])
+  @@index([entityType, entityId])
 }
