@@ -1,0 +1,9 @@
+[
+  {
+    "pkg": "example-package",
+    "version": "1.2.3",
+    "reason": "Pending upstream fix for transitive vulnerability",
+    "owner": "security@example.com",
+    "expires": "2099-12-31"
+  }
+]
