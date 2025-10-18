@@ -1,0 +1,9 @@
+{
+  "name": "fast-check",
+  "version": "0.0.0-local",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  }
+}
