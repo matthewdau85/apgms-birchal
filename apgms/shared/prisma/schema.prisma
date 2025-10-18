@@ -34,3 +34,19 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model AuditBlob {
+  id            String            @id @default(cuid())
+  createdAt     DateTime          @default(now())
+  direction     AuditBlobDirection
+  endpoint      String
+  messageId     String
+  correlationId String?
+  payloadType   String
+  payload       String
+}
+
+enum AuditBlobDirection {
+  request
+  response
+}
