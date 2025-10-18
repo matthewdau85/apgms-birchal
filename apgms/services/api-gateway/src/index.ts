@@ -10,6 +10,14 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import {
+  applyPolicy,
+  PolicyEngineError,
+  type AccountState,
+  type BankLine,
+  type PolicyRuleset,
+} from "@apgms/policy-engine";
+import { mintRPT, verifyStoredRPT } from "./lib/rpt";
 
 const app = Fastify({ logger: true });
 
@@ -63,6 +71,59 @@ app.post("/bank-lines", async (req, rep) => {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
   }
+});
+
+type ApplyRequest = {
+  bankLine: BankLine;
+  ruleset: PolicyRuleset;
+  accountStates: AccountState[];
+  prevHash?: string | null;
+};
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const body = req.body as ApplyRequest;
+    const policyResult = applyPolicy({
+      bankLine: body.bankLine,
+      ruleset: body.ruleset,
+      accountStates: body.accountStates,
+    });
+
+    const rpt = await mintRPT({
+      bankLineId: body.bankLine.id,
+      policyHash: policyResult.policyHash,
+      allocations: policyResult.allocations,
+      prevHash: body.prevHash ?? null,
+    });
+
+    return rep.code(201).send({
+      allocationProposal: policyResult.allocations,
+      policySnapshotHash: policyResult.policyHash,
+      explanation: policyResult.explanation,
+      rpt,
+    });
+  } catch (error) {
+    req.log.error(error);
+    if (error instanceof PolicyEngineError) {
+      return rep.code(400).send({ error: "policy_error", message: error.message });
+    }
+    return rep.code(500).send({ error: "internal_error" });
+  }
+});
+
+app.get("/audit/rpt/:id", async (req, rep) => {
+  const { id } = req.params as { id: string };
+  const verification = await verifyStoredRPT(id);
+
+  if (!verification.ok) {
+    if (verification.error === "not_found") {
+      return rep.code(404).send({ error: "not_found" });
+    }
+
+    return rep.code(422).send({ error: verification.error, reason: verification.reason });
+  }
+
+  return { ok: true, verification };
 });
 
 // Print routes so we can SEE POST /bank-lines is registered
