@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+html {
+  font-feature-settings: 'tnum';
+}
+
+body {
+  @apply bg-surface-light text-slate-900 dark:bg-surface-dark dark:text-slate-100;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+a {
+  @apply text-brand-600 hover:text-brand-500 dark:text-brand-300 dark:hover:text-brand-200;
+}
