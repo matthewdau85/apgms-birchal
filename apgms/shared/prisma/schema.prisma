@@ -1,27 +1,102 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum DesignatedAccountType {
+  OPERATING
+  TAX
+  PAYROLL
+}
+
+enum GateEventType {
+  REGISTRATION_SUBMITTED
+  REGISTRATION_APPROVED
+  BAS_SCHEDULE_CREATED
+  ALLOCATION_RULES_PUBLISHED
+}
+
+enum GateEventStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ReportType {
+  BAS
+  CASH_FLOW_SUMMARY
+}
+
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id                        String   @id @default(cuid())
+  name                      String
+  timezone                  String?
+  basScheduleAnchor         DateTime?
+  basScheduleFrequencyMonths Int?
+  basSubmissionDayOfMonth   Int?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  users                     User[]
+  bankLines                 BankLine[]
+  designatedAccounts        DesignatedAccount[]
+  allocationRuleSets        AllocationRuleSet[]
+  gateEvents                GateEvent[]
+  precomputedRpts           PrecomputedRpt[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  displayName String?
+  role        UserRole @default(MEMBER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+}
+
+model DesignatedAccount {
+  id               String   @id @default(cuid())
+  org              Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId            String
+  type             DesignatedAccountType
+  name             String
+  bsb              String
+  accountNumber    String
+  bankName         String
+  isActive         Boolean  @default(true)
+  lastReconciledAt DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  allocationRuleSets AllocationRuleSet[]
+}
+
+model AllocationRuleSet {
+  id                   String             @id @default(cuid())
+  org                  Org                @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId                String
+  name                 String
+  version              Int
+  isDefault            Boolean            @default(false)
+  designatedAccount    DesignatedAccount? @relation(fields: [designatedAccountId], references: [id])
+  designatedAccountId  String?
+  effectiveFrom        DateTime
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@unique([orgId, version])
 }
 
 model BankLine {
@@ -32,5 +107,36 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  reference String?
+  source    String?  @default("import")
   createdAt DateTime @default(now())
+}
+
+model GateEvent {
+  id         String         @id @default(cuid())
+  org        Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  type       GateEventType
+  status     GateEventStatus
+  occurredAt DateTime
+  payload    Json
+  createdAt  DateTime       @default(now())
+
+  @@index([orgId, occurredAt])
+}
+
+model PrecomputedRpt {
+  id         String     @id @default(cuid())
+  org        Org        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  reportType ReportType
+  periodStart DateTime
+  periodEnd  DateTime
+  basDueDate DateTime?
+  generatedAt DateTime   @default(now())
+  payload    Json
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([orgId, reportType, periodStart, periodEnd])
 }
