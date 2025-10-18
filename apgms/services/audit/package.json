@@ -1,10 +1,10 @@
 {
-  "name": "@apgms/worker",
+  "name": "@apgms/audit",
   "version": "0.1.0",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "build": "echo build worker",
+    "build": "echo build audit",
     "test": "find test -name '*.test.ts' -print0 | xargs -0 node --test --import tsx"
   }
 }
