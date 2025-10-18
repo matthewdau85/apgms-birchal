@@ -1,0 +1,5 @@
+{
+  "name": "stale timestamp should fail",
+  "scenario": "Send a signed webhook request with an RFC3339 timestamp outside the allowed skew window; the request must be rejected.",
+  "expectedStatus": 409
+}

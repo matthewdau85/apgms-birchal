@@ -1,0 +1,5 @@
+{
+  "name": "nonce replay should fail",
+  "scenario": "Send two identical signed webhook requests with the same nonce; the second attempt must be rejected.",
+  "expectedStatus": 409
+}

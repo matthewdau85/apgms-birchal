@@ -1,4 +1,5 @@
-﻿import path from "node:path";
+import path from "node:path";
+import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -10,10 +11,46 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import webhookPlugin from "./plugins/webhook";
+import webhooksRoutes from "./routes/webhooks";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+
+app.addHook("preParsing", async (request, _reply, payload) => {
+  if (request.method === "GET" || request.method === "HEAD") {
+    return payload;
+  }
+
+  if (typeof payload === "string") {
+    request.rawBody = payload;
+    return Readable.from([payload]);
+  }
+
+  if (Buffer.isBuffer(payload)) {
+    request.rawBody = payload.toString("utf8");
+    return Readable.from([payload]);
+  }
+
+  if (payload && typeof (payload as any).on === "function") {
+    const chunks: Buffer[] = [];
+    for await (const chunk of payload as any) {
+      chunks.push(
+        typeof chunk === "string" ? Buffer.from(chunk, "utf8") : chunk,
+      );
+    }
+    const rawBuffer = Buffer.concat(chunks);
+    request.rawBody = rawBuffer.toString("utf8");
+    return Readable.from([rawBuffer]);
+  }
+
+  request.rawBody = "";
+  return payload;
+});
+
+await app.register(webhookPlugin);
+await app.register(webhooksRoutes);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -77,4 +114,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-

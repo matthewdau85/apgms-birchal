@@ -1,0 +1,5 @@
+{
+  "name": "bad signature should fail",
+  "scenario": "Send a webhook request with an incorrect X-Signature HMAC; the request must be rejected.",
+  "expectedStatus": 401
+}
