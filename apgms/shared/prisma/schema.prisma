@@ -34,3 +34,21 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  actorRole  String
+  action     String
+  resource   String
+  metadata   Json
+  prevHash   String?
+  hash       String
+  anchorDate DateTime
+}
+
+model AuditAnchor {
+  date      DateTime @id
+  hash      String
+  createdAt DateTime @default(now())
+}
