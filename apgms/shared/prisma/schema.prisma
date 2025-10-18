@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
@@ -13,6 +14,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  alerts    Alert[]
 }
 
 model User {
@@ -33,4 +35,38 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+  alerts    Alert[]
+}
+
+model Alert {
+  id        String        @id @default(cuid())
+  org       Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  bankLine  BankLine?     @relation(fields: [bankLineId], references: [id], onDelete: SetNull)
+  bankLineId String?
+  ruleId    String
+  summary   String
+  details   String?
+  status    AlertStatus   @default(UNREAD)
+  severity  AlertSeverity @default(MEDIUM)
+  metadata  Json?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  readAt    DateTime?
+
+  @@index([orgId, status], map: "alerts_org_status_idx")
+  @@index([ruleId], map: "alerts_rule_idx")
+  @@index([bankLineId], map: "alerts_bank_line_idx")
+}
+
+enum AlertStatus {
+  UNREAD
+  READ
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
 }
