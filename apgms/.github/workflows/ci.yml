@@ -1,17 +1,47 @@
-﻿name: CI
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 jobs:
-  build:
+  node-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 8
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+          node-version: 18
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+        working-directory: apgms
+      - name: Run unit tests
+        run: pnpm test
+        working-directory: apgms
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+        working-directory: apgms
+      - name: Run end-to-end tests
+        run: pnpm test:e2e
+        working-directory: apgms
+
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: poetry install --with dev
+        working-directory: apgms/services/tax-engine
+      - name: Run pytest
+        run: poetry run pytest
+        working-directory: apgms/services/tax-engine
