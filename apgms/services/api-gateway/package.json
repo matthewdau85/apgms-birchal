@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test:prodprofile": "NODE_ENV=production tsx test/prod-profile.e2e.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
