@@ -32,5 +32,36 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  category  String?
   createdAt DateTime @default(now())
+}
+
+model Alert {
+  id             String      @id @default(cuid())
+  org            Org         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  ruleId         String
+  status         AlertStatus @default(OPEN)
+  severity       AlertSeverity
+  summary        String
+  detectedAt     DateTime    @default(now())
+  transactionRef String?
+  context        Json
+  counterExample Json
+  acknowledgedAt DateTime?
+  escalatedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  ESCALATED
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
 }
