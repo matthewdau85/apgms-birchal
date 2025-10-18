@@ -1,8 +1,45 @@
-﻿name: Security
-on: [push]
+name: Security
+
+on:
+  push:
+  pull_request:
+
 jobs:
-  scan:
+  sbom:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: echo scanning
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Prepare package.json for npm audit
+        run: |
+          node -e "const fs=require('fs');const path='package.json';const backup='package.json.audit-backup';const data=JSON.parse(fs.readFileSync(path,'utf8'));fs.writeFileSync(backup, JSON.stringify(data));if(data.workspaces){delete data.workspaces;}fs.writeFileSync(path, JSON.stringify(data));"
+
+      - name: Generate package-lock for audit
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Run npm audit (JSON)
+        run: npm audit --omit=dev --json > audit.json || true
+
+      - name: Enforce vulnerability policy
+        run: node scripts/audit-check.mjs audit.json compliance/allowlist-audit.json
+
+      - name: Clean up audit artifacts
+        run: |
+          rm -f package-lock.json
+          if [ -f package.json.audit-backup ]; then mv package.json.audit-backup package.json; fi
+
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          if-no-files-found: error
