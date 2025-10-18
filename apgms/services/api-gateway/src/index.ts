@@ -10,6 +10,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { mintRpt } from "./lib/rpt";
+import { putAuditBlob } from "./lib/audit";
 
 const app = Fastify({ logger: true });
 
@@ -62,6 +64,64 @@ app.post("/bank-lines", async (req, rep) => {
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const body = req.body as {
+      orgId: string;
+      amount: number | string;
+      memo?: string;
+    };
+
+    let amountValue: string;
+    if (typeof body.amount === "number") {
+      amountValue = body.amount.toString();
+    } else if (typeof body.amount === "string") {
+      amountValue = body.amount;
+    } else {
+      throw new Error("invalid_amount");
+    }
+
+    const ledgerEntry = await prisma.ledgerEntry.create({
+      data: {
+        orgId: body.orgId,
+        memo: body.memo ?? null,
+        amount: amountValue,
+      },
+    });
+
+    const rpt = mintRpt({
+      orgId: body.orgId,
+      ledgerEntryId: ledgerEntry.id,
+      issuedAt: new Date().toISOString(),
+    });
+
+    await prisma.rptToken.create({
+      data: {
+        id: rpt.payload.tokenId,
+        orgId: body.orgId,
+        ledgerEntryId: ledgerEntry.id,
+        payload: rpt.payload as any,
+        signature: rpt.signature,
+      },
+    });
+
+    const audit = await putAuditBlob({
+      orgId: body.orgId,
+      type: "rpt_token_issued",
+      payload: { rpt },
+    });
+
+    return rep.code(201).send({
+      ledgerEntry,
+      rpt,
+      audit,
+    });
+  } catch (err) {
+    req.log.error(err);
+    return rep.code(400).send({ error: "allocation_failed" });
   }
 });
 
