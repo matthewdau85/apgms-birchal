@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "NODE_ENV=development tsx --test test/schema-guard.spec.ts",
+    "typecheck": "tsc --noEmit",
+    "schema:validity": "tsx scripts/schema-validity.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
