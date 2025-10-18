@@ -1,0 +1,19 @@
+{
+  "name": "webhook_stale_timestamp",
+  "description": "Send a webhook with a timestamp older than the five-minute window.",
+  "request": {
+    "method": "POST",
+    "path": "/webhooks/payto",
+    "headers": {
+      "X-Nonce": "nonce-stale",
+      "X-Timestamp": "2020-01-01T00:00:00Z",
+      "X-Signature": "<hmac of stale timestamp>",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"event\":\"payto\"}"
+  },
+  "expected": {
+    "status": 409,
+    "body": { "error": "stale_timestamp" }
+  }
+}
