@@ -13,6 +13,11 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  policies  Policy[]
+  gateEvents GateEvent[]
+  ledgerEntries LedgerEntry[]
+  rptTokens RptToken[]
+  auditBlobs AuditBlob[]
 }
 
 model User {
@@ -33,4 +38,122 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+model Policy {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  name      String
+  version   Int      @default(1)
+  summary   String?
+  config    Json?
+  createdAt DateTime @default(now())
+  ruleSets  AllocationRuleSet[]
+  gateEvents GateEvent[]
+  rptTokens RptToken[]
+
+  @@unique([orgId, name, version])
+}
+
+model AllocationRuleSet {
+  id          String   @id @default(cuid())
+  policy      Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId    String
+  name        String
+  definition  Json
+  createdAt   DateTime @default(now())
+  gateEvents  GateEvent[]
+  rptTokens   RptToken[]
+}
+
+model GateEvent {
+  id                 String              @id @default(cuid())
+  org                Org                 @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String
+  policy             Policy              @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  policyId           String
+  allocationRuleSet  AllocationRuleSet?  @relation(fields: [allocationRuleSetId], references: [id], onDelete: SetNull)
+  allocationRuleSetId String?
+  requestId          String              @unique
+  eventType          String
+  payload            Json
+  prevEvent          GateEvent?          @relation("GateEventChain", fields: [prevEventId], references: [id], onDelete: Restrict)
+  prevEventId        String?             @unique
+  nextEvents         GateEvent[]         @relation("GateEventChain")
+  prevHash           String?
+  hash               String              @unique
+  createdAt          DateTime            @default(now())
+  ledgerEntries      LedgerEntry[]
+  rptTokens          RptToken[]
+  auditBlobs         AuditBlob[]
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+  ADJUSTMENT
+}
+
+model LedgerEntry {
+  id           String           @id @default(cuid())
+  org          Org              @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  gateEvent    GateEvent?       @relation(fields: [gateEventId], references: [id], onDelete: SetNull)
+  gateEventId  String?
+  requestId    String           @unique
+  entryType    LedgerEntryType
+  amount       Decimal
+  currency     String           @default("AUD")
+  memo         String?
+  prevEntry    LedgerEntry?     @relation("LedgerEntryChain", fields: [prevEntryId], references: [id], onDelete: Restrict)
+  prevEntryId  String?          @unique
+  nextEntries  LedgerEntry[]    @relation("LedgerEntryChain")
+  prevHash     String?
+  hash         String           @unique
+  createdAt    DateTime         @default(now())
+  auditBlobs   AuditBlob[]
+}
+
+enum RptTokenStatus {
+  ISSUED
+  REVOKED
+  EXPIRED
+}
+
+model RptToken {
+  id                 String             @id @default(cuid())
+  org                Org                @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String
+  policy             Policy             @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  policyId           String
+  allocationRuleSet  AllocationRuleSet? @relation(fields: [allocationRuleSetId], references: [id], onDelete: SetNull)
+  allocationRuleSetId String?
+  gateEvent          GateEvent?         @relation(fields: [gateEventId], references: [id], onDelete: SetNull)
+  gateEventId        String?
+  requestId          String             @unique
+  token              String             @unique
+  status             RptTokenStatus     @default(ISSUED)
+  issuedAt           DateTime           @default(now())
+  expiresAt          DateTime?
+  metadata           Json?
+}
+
+model AuditBlob {
+  id            String        @id @default(cuid())
+  org           Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  gateEvent     GateEvent?    @relation(fields: [gateEventId], references: [id], onDelete: SetNull)
+  gateEventId   String?
+  ledgerEntry   LedgerEntry?  @relation(fields: [ledgerEntryId], references: [id], onDelete: SetNull)
+  ledgerEntryId String?
+  requestId     String        @unique
+  content       Bytes
+  contentType   String
+  prevBlob      AuditBlob?    @relation("AuditBlobChain", fields: [prevBlobId], references: [id], onDelete: Restrict)
+  prevBlobId    String?       @unique
+  nextBlobs     AuditBlob[]   @relation("AuditBlobChain")
+  prevHash      String?
+  hash          String        @unique
+  createdAt     DateTime      @default(now())
 }
