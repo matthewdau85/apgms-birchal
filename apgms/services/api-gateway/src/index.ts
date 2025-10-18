@@ -8,12 +8,29 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
+import { createRedisClient } from "./lib/redis";
+import idempotencyPlugin from "./plugins/idempotency";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
+const redis = await createRedisClient(
+  process.env.REDIS_URL ?? "redis://127.0.0.1:6379",
+  app.log,
+);
+const defaultIdempotencyTtl = 60 * 60 * 24;
+const envIdempotencyTtl = Number(process.env.IDEMPOTENCY_TTL_SECONDS);
+const idempotencyTtl = Number.isFinite(envIdempotencyTtl) && envIdempotencyTtl > 0
+  ? envIdempotencyTtl
+  : defaultIdempotencyTtl;
+
 await app.register(cors, { origin: true });
+await idempotencyPlugin(app, { redis, ttlSeconds: idempotencyTtl });
+
+app.addHook("onClose", async () => {
+  await redis.quit();
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -40,7 +57,7 @@ app.get("/bank-lines", async (req) => {
 });
 
 // Create a bank line
-app.post("/bank-lines", async (req, rep) => {
+app.post("/bank-lines", { config: { idempotency: true } }, async (req, rep) => {
   try {
     const body = req.body as {
       orgId: string;
@@ -58,6 +75,7 @@ app.post("/bank-lines", async (req, rep) => {
         desc: body.desc,
       },
     });
+    rep.header("etag", `W/"${created.id}"`);
     return rep.code(201).send(created);
   } catch (e) {
     req.log.error(e);

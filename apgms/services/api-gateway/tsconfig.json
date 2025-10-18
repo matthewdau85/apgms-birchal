@@ -6,11 +6,19 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": [
+        "shared/src/*"
+      ]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "test",
+    "types"
+  ]
 }
