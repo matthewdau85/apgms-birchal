@@ -10,8 +10,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { setAppLogger } from "./lib/logger.js";
+import { registerAuthSecurityLogger } from "./mw/auth.js";
+import { registerIdempotencyMiddleware } from "./mw/idempotency.js";
 
 const app = Fastify({ logger: true });
+setAppLogger(app.log);
+
+registerAuthSecurityLogger(app);
+registerIdempotencyMiddleware(app);
 
 await app.register(cors, { origin: true });
 
