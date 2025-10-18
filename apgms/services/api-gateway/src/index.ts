@@ -10,8 +10,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { isTracingEnabled, setupTracing } from "./tracing";
 
 const app = Fastify({ logger: true });
+
+setupTracing(app);
+
+if (isTracingEnabled) {
+  app.log.info("OTEL console exporter enabled");
+}
 
 await app.register(cors, { origin: true });
 
