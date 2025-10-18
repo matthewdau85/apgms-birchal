@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,22 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  prod-profile:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: npm run test:prodprofile
+        working-directory: apgms
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prod-profile-report
+          path: apgms/services/api-gateway/reports/prod-profile-check.json
