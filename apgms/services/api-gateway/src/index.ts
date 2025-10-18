@@ -20,6 +20,23 @@ app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
+app.get("/livez", async () => ({ status: "ok" }));
+
+app.get("/readyz", async (req, rep) => {
+  if (process.env.CHAOS_DB_DOWN === "true") {
+    req.log.warn("chaos toggle forcing readiness failure");
+    return rep.code(503).send({ status: "fail", reason: "chaos_db_down" });
+  }
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return { status: "ok" };
+  } catch (error) {
+    req.log.error({ err: error }, "readiness probe failed");
+    return rep.code(503).send({ status: "fail", reason: "db_unavailable" });
+  }
+});
+
 // List users (email + org)
 app.get("/users", async () => {
   const users = await prisma.user.findMany({
@@ -63,6 +80,37 @@ app.post("/bank-lines", async (req, rep) => {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
   }
+});
+
+app.post("/allocations/apply", async (req, rep) => {
+  const idempotencyKeyHeader = req.headers["idempotency-key"];
+  const idempotencyKey = Array.isArray(idempotencyKeyHeader)
+    ? idempotencyKeyHeader[0]
+    : idempotencyKeyHeader;
+
+  if (!idempotencyKey) {
+    return rep.code(400).send({ error: "missing_idempotency_key" });
+  }
+
+  const body = req.body as {
+    orgId?: string;
+    allocations?: Array<{ lineId?: string; amount?: number | string }>;
+  };
+
+  if (!body?.orgId || !Array.isArray(body.allocations) || body.allocations.length === 0) {
+    return rep.code(400).send({ error: "invalid_request" });
+  }
+
+  req.log.info(
+    {
+      orgId: body.orgId,
+      idempotencyKey,
+      allocations: body.allocations.map((item) => item.lineId).filter(Boolean),
+    },
+    "allocations apply requested",
+  );
+
+  return rep.code(202).send({ status: "accepted", idempotencyKey });
 });
 
 // Print routes so we can SEE POST /bank-lines is registered

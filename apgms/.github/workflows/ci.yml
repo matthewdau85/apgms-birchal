@@ -3,6 +3,9 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -15,3 +18,190 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+
+  readiness:
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: apgms
+          POSTGRES_PASSWORD: apgms
+          POSTGRES_DB: apgms
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U apgms" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms
+      SHADOW_DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms_shadow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - name: Prepare shadow database
+        run: |
+          psql postgresql://apgms:apgms@localhost:5432/postgres -c 'CREATE DATABASE apgms_shadow;' || true
+      - name: Push Prisma schema
+        run: pnpm dlx prisma db push --schema=shared/prisma/schema.prisma
+      - name: Readiness probe returns 200
+        run: |
+          nohup DATABASE_URL="$DATABASE_URL" pnpm --filter @apgms/api-gateway dev > readiness.log 2>&1 &
+          APP_PID=$!
+          for attempt in {1..30}; do
+            status=$(curl -s -o ready.json -w "%{http_code}" http://127.0.0.1:3000/readyz || true)
+            if [ "$status" = "200" ]; then
+              cat ready.json
+              kill $APP_PID
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Readiness probe did not reach 200" >&2
+          kill $APP_PID || true
+          exit 1
+      - name: CHAOS_DB_DOWN readiness returns 503
+        run: |
+          nohup DATABASE_URL="$DATABASE_URL" CHAOS_DB_DOWN=true pnpm --filter @apgms/api-gateway dev > readiness-chaos.log 2>&1 &
+          APP_PID=$!
+          for attempt in {1..30}; do
+            status=$(curl -s -o ready-chaos.json -w "%{http_code}" http://127.0.0.1:3000/readyz || true)
+            if [ "$status" = "503" ]; then
+              cat ready-chaos.json
+              kill $APP_PID
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Readiness probe did not return 503 under CHAOS_DB_DOWN" >&2
+          kill $APP_PID || true
+          exit 1
+
+  perf:
+    needs: build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: apgms
+          POSTGRES_PASSWORD: apgms
+          POSTGRES_DB: apgms
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U apgms" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms
+      SHADOW_DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms_shadow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - name: Prepare shadow database
+        run: |
+          psql postgresql://apgms:apgms@localhost:5432/postgres -c 'CREATE DATABASE apgms_shadow;' || true
+      - name: Push Prisma schema
+        run: pnpm dlx prisma db push --schema=shared/prisma/schema.prisma
+      - name: Seed baseline data
+        run: pnpm dlx tsx scripts/seed.ts
+      - name: Start API gateway
+        run: |
+          nohup DATABASE_URL="$DATABASE_URL" pnpm --filter @apgms/api-gateway dev > gateway.log 2>&1 &
+          echo $! > gateway.pid
+          sleep 5
+      - name: Wait for readyz
+        run: |
+          success=0
+          for attempt in {1..30}; do
+            status=$(curl -s -o ready.json -w "%{http_code}" http://127.0.0.1:3000/readyz || true)
+            if [ "$status" = "200" ]; then
+              cat ready.json
+              success=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$success" -ne 1 ]; then
+            echo "Gateway did not become ready in time" >&2
+            exit 1
+          fi
+      - name: Install k6
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg software-properties-common
+          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+      - name: Run k6 allocations apply
+        id: k6
+        env:
+          BASE_URL: http://127.0.0.1:3000
+          ORG_ID: demo-org
+          IDEMPOTENCY_KEY: dev-allocations-apply
+        run: |
+          set +e
+          k6 run --summary-export=perf/k6/results.json perf/k6/allocations_apply.js
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::warning::k6 exited with status $EXIT_CODE"
+          fi
+          exit 0
+      - name: Summarise performance
+        if: always()
+        run: |
+          if [ -f perf/k6/results.json ]; then
+            node <<'EOF'
+            import fs from 'node:fs';
+
+            const summary = JSON.parse(fs.readFileSync('perf/k6/results.json', 'utf-8'));
+            const metrics = summary.metrics ?? {};
+
+            const formatTrend = (values, label) => {
+              if (!values || values['p(95)'] === undefined) {
+                console.log(`${label}: n/a`);
+                return;
+              }
+              console.log(`${label}: ${values['p(95)']} ms`);
+            };
+
+            formatTrend(metrics.http_req_duration?.values, 'http_req_duration p95');
+            formatTrend(metrics.allocation_latency?.values, 'allocation_latency p95');
+            formatTrend(metrics.line_creation_latency?.values, 'line_creation_latency p95');
+
+            const failedRate = metrics.http_req_failed?.values?.rate;
+            console.log(`http_req_failed rate: ${failedRate ?? 'n/a'}`);
+            EOF
+          else
+            echo "No k6 summary generated"
+          fi
+      - name: Dump gateway logs on regression
+        if: steps.k6.outputs.exit_code && steps.k6.outputs.exit_code != '0'
+        run: cat gateway.log
+      - name: Stop API gateway
+        if: always()
+        run: |
+          if [ -f gateway.pid ]; then
+            kill $(cat gateway.pid) || true
+          fi
