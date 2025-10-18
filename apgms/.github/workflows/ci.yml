@@ -15,3 +15,15 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - name: Golden tests
+        run: npm run golden
+      - name: Red-team checks
+        run: npm run redteam
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-reports
+          path: |
+            eval/golden-report.json
+            eval/redteam-report.json
