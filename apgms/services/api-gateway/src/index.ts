@@ -10,13 +10,57 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { createLogger } from "../../../shared/src/observability/logger";
+import {
+  createHttpMetrics,
+  createMetricsRegistry,
+} from "../../../shared/src/observability/metrics";
 
-const app = Fastify({ logger: true });
+declare module "fastify" {
+  interface FastifyRequest {
+    metricsEndTimer?: (labels?: Record<string, string | number>) => void;
+  }
+}
+
+const serviceName = process.env.SERVICE_NAME ?? "api-gateway";
+const logger = createLogger({ serviceName });
+const metricsRegistry = createMetricsRegistry({ serviceName });
+const httpMetrics = createHttpMetrics(metricsRegistry);
+
+const app = Fastify({ logger });
 
 await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+
+app.addHook("onRequest", async (req) => {
+  const route = req.routeOptions.url ?? req.url;
+  req.metricsEndTimer = httpMetrics.requestDuration.startTimer({
+    method: req.method,
+    route,
+  });
+});
+
+app.addHook("onResponse", async (req, rep) => {
+  const route = req.routeOptions.url ?? req.url;
+  const statusCode = rep.statusCode;
+  httpMetrics.requestCount.inc({
+    method: req.method,
+    route,
+    status_code: String(statusCode),
+  });
+  req.metricsEndTimer?.({
+    method: req.method,
+    route,
+    status_code: String(statusCode),
+  });
+});
+
+app.get("/metrics", async (_req, rep) => {
+  rep.header("Content-Type", metricsRegistry.contentType);
+  return rep.send(await metricsRegistry.metrics());
+});
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -73,8 +117,13 @@ app.ready(() => {
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
-});
+app
+  .listen({ port, host })
+  .then(() => {
+    app.log.info({ port, host }, "api gateway listening");
+  })
+  .catch((err) => {
+    app.log.error(err);
+    process.exit(1);
+  });
 
