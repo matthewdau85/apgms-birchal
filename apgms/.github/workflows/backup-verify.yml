@@ -1,0 +1,58 @@
+name: Backup Verify
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  pull_request:
+
+jobs:
+  backup-verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install PostgreSQL client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Prepare evidence directory
+        run: |
+          sudo mkdir -p /evidence
+          sudo chown $USER:$USER /evidence
+      - name: Seed sample data
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE TABLE IF NOT EXISTS public.backup_verify_examples (
+            id SERIAL PRIMARY KEY,
+            description TEXT NOT NULL
+          );
+          TRUNCATE public.backup_verify_examples;
+          INSERT INTO public.backup_verify_examples (description)
+          VALUES ('alpha'), ('beta'), ('gamma');
+          SQL
+      - name: Run backup verification
+        run: pnpm backup:verify
+      - name: Upload backup report
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-restore-report
+          path: /evidence/backup-restore
+          if-no-files-found: error
