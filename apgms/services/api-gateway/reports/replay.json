@@ -1,0 +1,5 @@
+{
+  "same_body_200": true,
+  "diff_body_409": true,
+  "stale_>=400": true
+}
