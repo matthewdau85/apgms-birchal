@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -8,11 +9,16 @@ datasource db {
 }
 
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id            String        @id @default(cuid())
+  name          String
+  createdAt     DateTime      @default(now())
+  users         User[]
+  lines         BankLine[]
+  policies      Policy[]
+  gates         Gate[]
+  ledgerEntries LedgerEntry[]
+  rptTokens     RptToken[]
+  auditBlobs    AuditBlob[]
 }
 
 model User {
@@ -25,12 +31,57 @@ model User {
 }
 
 model BankLine {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  date        DateTime
+  amountCents Int
+  payee       String
+  desc        String
+  createdAt   DateTime @default(now())
+}
+
+model Policy {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  definition  Json
+  createdAt   DateTime @default(now())
+}
+
+model Gate {
   id        String   @id @default(cuid())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
+  name      String
+  config    Json
   createdAt DateTime @default(now())
+}
+
+model RptToken {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  token     String   @unique
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model AuditBlob {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  blob      Bytes
+  createdAt DateTime @default(now())
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  occurredAt  DateTime
+  amountCents Int
+  description String
+  createdAt   DateTime @default(now())
 }
