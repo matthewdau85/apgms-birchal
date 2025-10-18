@@ -10,7 +10,9 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/policy-engine": ["shared/policy-engine/index.ts"],
+      "@apgms/policy-engine/*": ["shared/policy-engine/*"]
     }
   }
 }

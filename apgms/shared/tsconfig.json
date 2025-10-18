@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@apgms/shared/*": ["src/*"],
+      "@apgms/policy-engine": ["policy-engine/index.ts"],
+      "@apgms/policy-engine/*": ["policy-engine/*"]
+    }
+  },
+  "include": ["policy-engine/**/*.ts", "src/**/*.ts", "test/**/*.ts"]
+}
