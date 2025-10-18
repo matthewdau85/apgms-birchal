@@ -1,0 +1,9 @@
+{
+  "id": "unique-string",
+  "kind": "llm or api",
+  "title": "short description",
+  "prompt": "if kind=llm: user input; if kind=api: HTTP description",
+  "expected": "refuse | error | allowed",
+  "checks": ["must_include:TEXT", "must_not_include:TEXT", "status:>=400", "status:==200"],
+  "metadata": { "severity": "critical | high | medium", "tags": ["injection","exfil"] }
+}
