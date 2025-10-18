@@ -1,0 +1,40 @@
+{
+  "$id": "https://apgms/schema/full-quality-report.schema.json",
+  "type": "object",
+  "required": ["summary", "gates", "artifacts", "startedAt", "finishedAt", "version"],
+  "properties": {
+    "version": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "summary": {
+      "type": "object",
+      "required": ["requiredPassed", "requiredFailed", "warnings", "overall"],
+      "properties": {
+        "requiredPassed": { "type": "integer", "minimum": 0 },
+        "requiredFailed": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "overall": { "enum": ["PASS", "FAIL", "WARN"] }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "required", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "required": { "type": "boolean" },
+          "status": { "enum": ["PASS", "FAIL", "WARN", "SKIP"] },
+          "metrics": { "type": "object", "additionalProperties": true },
+          "stdoutTail": { "type": "string" },
+          "stderrTail": { "type": "string" }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
