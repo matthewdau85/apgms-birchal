@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "build": "tsc --project tsconfig.build.json",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
@@ -17,5 +19,10 @@
     "@types/node": "^24.7.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
-  }
+  },
+  "files": [
+    "dist",
+    "healthcheck.mjs",
+    "package.json"
+  ]
 }
