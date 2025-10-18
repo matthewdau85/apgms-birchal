@@ -13,6 +13,8 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  policies  Policy[]
+  auditLog  AuditEvent[]
 }
 
 model User {
@@ -33,4 +35,56 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+  allocations Allocation[]
+}
+
+model Policy {
+  id          String        @id @default(cuid())
+  org         Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  name        String
+  description String
+  status      PolicyStatus  @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  gates       PolicyGate[]
+}
+
+model PolicyGate {
+  id        String   @id @default(cuid())
+  policy    Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyId  String
+  name      String
+  type      String
+  config    Json
+  createdAt DateTime @default(now())
+}
+
+model Allocation {
+  id         String   @id @default(cuid())
+  bankLine   BankLine @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId String
+  category   String
+  amount     Decimal
+  notes      String?
+  createdAt  DateTime @default(now())
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  actor      String
+  actorType  String
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json
+  createdAt  DateTime @default(now())
+}
+
+enum PolicyStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
