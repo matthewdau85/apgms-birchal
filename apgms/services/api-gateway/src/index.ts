@@ -9,11 +9,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import idempotencyPlugin from "./plugins/idempotency";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(idempotencyPlugin, {
+  paths: ["/bank-lines", "/allocations/apply"],
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -59,6 +63,30 @@ app.post("/bank-lines", async (req, rep) => {
       },
     });
     return rep.code(201).send(created);
+  } catch (e) {
+    req.log.error(e);
+    return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const body = req.body as {
+      orgId: string;
+      allocationId: string;
+      amount: number | string;
+    };
+
+    if (!body?.orgId || !body?.allocationId) {
+      return rep.code(400).send({ error: "bad_request" });
+    }
+
+    return rep.send({
+      orgId: body.orgId,
+      allocationId: body.allocationId,
+      amount: body.amount,
+      applied: true,
+    });
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
