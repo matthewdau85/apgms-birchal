@@ -1,0 +1,22 @@
+{
+  "$id": "allocations.preview.schema.json",
+  "type": "object",
+  "required": ["policyHash", "allocations", "explain"],
+  "properties": {
+    "policyHash": { "type": "string", "minLength": 32 },
+    "allocations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["bucket", "amountCents", "currency"],
+        "properties": {
+          "bucket": { "enum": ["OPERATING", "TAX_BUFFER", "PAYGW", "GST"] },
+          "amountCents": { "type": "integer", "minimum": 0 },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+        }
+      }
+    },
+    "explain": { "type": "string", "maxLength": 2000 }
+  }
+}
