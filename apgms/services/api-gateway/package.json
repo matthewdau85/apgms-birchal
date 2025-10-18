@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "tsx src/index.ts"
-  },
   "dependencies": {
     "@apgms/shared": "workspace:*",
     "@fastify/cors": "^11.1.0",
@@ -17,5 +14,9 @@
     "@types/node": "^24.7.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "test": "tsx --test test/app.test.ts test/policy-engine.test.ts"
   }
 }
