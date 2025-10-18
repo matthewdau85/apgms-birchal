@@ -1,0 +1,5 @@
+Data Element,Source,System of Record,Retention,Notes
+Customer email address,API submissions,PostgreSQL,7 years,Used for transactional notifications and MFA recovery
+Director tax file number,Partner uplifts,Encrypted object store,3 years,Encrypted at rest and masked in analytics
+Bank account BSB,Open banking connectors,Payments service,7 years,Tokenised before storage; PCI controls applied
+Support session transcripts,Zendesk export,Observability warehouse,18 months,Access restricted to support leadership

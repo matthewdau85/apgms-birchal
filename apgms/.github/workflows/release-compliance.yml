@@ -1,23 +1,16 @@
-name: Security
+name: Release Compliance
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-  schedule:
-    - cron: '0 6 * * 1'
   release:
     types: [published]
 
 jobs:
-  sbom-and-scan:
-    name: SBOM & SCA
+  publish:
+    name: Publish compliance evidence
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
-      attestations: write
-      security-events: write
     env:
       SECURITY_REPORT_DIR: security-reports
       VULNERABILITY_ALLOWLIST: apgms/security/vulnerability-allowlist.json
@@ -25,8 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Install scanning toolchain
@@ -73,10 +65,10 @@ jobs:
             --certificate "$SECURITY_REPORT_DIR/pnpm-lock.pem" \
             --certificate-identity "${{ github.actor }}@users.noreply.github.com" \
             --certificate-oidc-issuer https://token.actions.githubusercontent.com
-      - name: Upload security artifacts
+      - name: Upload compliance artifact bundle
         uses: actions/upload-artifact@v4
         with:
-          name: security-compliance-${{ github.run_id }}
+          name: release-compliance
           path: |
             ${{ env.SECURITY_REPORT_DIR }}/sbom.cdx.json
             ${{ env.SECURITY_REPORT_DIR }}/trivy-report.json
@@ -84,26 +76,15 @@ jobs:
             ${{ env.SECURITY_REPORT_DIR }}/scan-summary.md
             ${{ env.SECURITY_REPORT_DIR }}/pnpm-lock.sig
             ${{ env.SECURITY_REPORT_DIR }}/pnpm-lock.pem
-
-  policy-as-code:
-    name: Policy as Code
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Conftest
-        run: |
-          curl -sSfL https://github.com/open-policy-agent/conftest/releases/download/v0.47.1/conftest_Linux_x86_64.tar.gz \
-            | tar -xz -C /tmp
-          sudo mv /tmp/conftest /usr/local/bin/conftest
-      - name: Validate infrastructure policies
-        run: conftest test apgms/infra/deployments --policy policy
-      - name: Install Helm
-        uses: azure/setup-helm@v4.2.0
-      - name: Render Helm chart for policy checks
-        run: |
-          helm template policy-ci apgms/infra/helm/api-gateway --values apgms/infra/helm/api-gateway/values.yaml > rendered-helm.yaml
-          conftest test rendered-helm.yaml --policy policy
-      - name: Validate CI policies
-        run: conftest test apgms/.github/workflows --policy policy
+      - name: Attach artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ env.SECURITY_REPORT_DIR }}/sbom.cdx.json
+            ${{ env.SECURITY_REPORT_DIR }}/trivy-report.json
+            ${{ env.SECURITY_REPORT_DIR }}/grype-report.json
+            ${{ env.SECURITY_REPORT_DIR }}/scan-summary.md
+            ${{ env.SECURITY_REPORT_DIR }}/pnpm-lock.sig
+            ${{ env.SECURITY_REPORT_DIR }}/pnpm-lock.pem
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

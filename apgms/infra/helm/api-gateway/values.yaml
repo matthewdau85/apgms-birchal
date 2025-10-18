@@ -1,0 +1,9 @@
+replicaCount: 2
+image:
+  repository: ghcr.io/apgms/api-gateway
+  tag: latest
+  pullPolicy: Always
+service:
+  port: 80
+  targetPort: 3000
+resources: {}

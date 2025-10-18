@@ -1,8 +1,15 @@
-﻿name: CI
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+  pull_request:
+
 jobs:
-  build:
+  quality-gate:
+    name: Quality Gate
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -12,6 +19,28 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build workspace
+        run: pnpm -r build
+      - name: Test workspace
+        run: pnpm -r test
+      - name: Publish quality gate summary
+        run: |
+          mkdir -p quality-gate
+          ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat <<'SUMMARY' > quality-gate/summary.md
+          # Quality Gate
+
+          - Build: ✅ Completed via `pnpm -r build`
+          - Tests: ✅ Completed via `pnpm -r test`
+          - Timestamp: __TIMESTAMP__
+
+          The outputs of this job must pass before merge; it is configured as the required "Quality Gate" check.
+          SUMMARY
+          sed -i "s/__TIMESTAMP__/${ts}/" quality-gate/summary.md
+      - name: Upload quality gate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gate-summary
+          path: quality-gate
