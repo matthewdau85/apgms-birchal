@@ -10,6 +10,8 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import webhookSigningPlugin, { InMemoryNonceStore } from "./plugins/webhook-signing";
+import webhooksRoutes from "./routes/webhooks";
 
 const app = Fastify({ logger: true });
 
@@ -17,6 +19,25 @@ await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+
+const webhookSecret = process.env.WEBHOOK_SIGNING_SECRET;
+
+if (!webhookSecret) {
+  app.log.warn("WEBHOOK_SIGNING_SECRET not set; /webhooks/payto is disabled");
+} else {
+  if (!process.env.REDIS_URL) {
+    app.log.warn(
+      "REDIS_URL not set; using in-memory nonce store for webhook replay protection",
+    );
+  }
+
+  await webhookSigningPlugin(app, {
+    secret: webhookSecret,
+    redis: new InMemoryNonceStore(),
+  });
+
+  await app.register(webhooksRoutes);
+}
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
