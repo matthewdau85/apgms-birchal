@@ -1,0 +1,19 @@
+{
+  "name": "webhook_nonce_reuse",
+  "description": "Send a second webhook using a previously accepted nonce to verify the replay cache blocks it.",
+  "request": {
+    "method": "POST",
+    "path": "/webhooks/payto",
+    "headers": {
+      "X-Nonce": "nonce-replay",
+      "X-Timestamp": "<current timestamp>",
+      "X-Signature": "<valid hmac>",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"event\":\"payto\"}"
+  },
+  "expected": {
+    "status": 409,
+    "body": { "error": "nonce_reused" }
+  }
+}

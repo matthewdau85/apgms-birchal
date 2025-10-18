@@ -1,0 +1,17 @@
+{
+  "name": "idempotent_replay",
+  "description": "Repeat a POST /bank-lines request with the same body and idempotency key to confirm the cached response is returned without reprocessing.",
+  "request": {
+    "method": "POST",
+    "path": "/bank-lines",
+    "headers": {
+      "Idempotency-Key": "key-replay",
+      "Content-Type": "application/json"
+    },
+    "body": "{\"orgId\":\"org_1\",\"date\":\"2024-01-01\",\"amount\":100,\"payee\":\"ACME\",\"desc\":\"Test\"}"
+  },
+  "expected": {
+    "status": 201,
+    "notes": "Second response should match the first without mutating state."
+  }
+}
