@@ -1,1 +1,7 @@
-﻿export default {};
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './webapp/tests',
+  fullyParallel: true,
+  reporter: [['list']],
+});
