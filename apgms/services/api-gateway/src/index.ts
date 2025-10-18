@@ -1,22 +1,34 @@
-﻿import path from "node:path";
-import { fileURLToPath } from "node:url";
-import dotenv from "dotenv";
-
-// Load repo-root .env from src/
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { prisma } from "@apgms/shared/db";
 
-const app = Fastify({ logger: true });
+import { config } from "./config";
+import { registerSecurity } from "./security";
 
-await app.register(cors, { origin: true });
+const app = Fastify({
+  logger: true,
+  bodyLimit: config.maxBodyBytes,
+});
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+const allowAllOrigins = config.corsAllowlist.includes("*");
+
+await app.register(cors, {
+  origin: (origin, cb) => {
+    if (allowAllOrigins || !origin) {
+      cb(null, true);
+      return;
+    }
+
+    if (config.corsAllowlist.includes(origin)) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error("Origin not allowed"), false);
+  },
+});
+
+await registerSecurity(app);
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -70,11 +82,11 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
-});
-
+app
+  .listen({ port: config.port, host })
+  .catch((err) => {
+    app.log.error(err);
+    process.exit(1);
+  });
