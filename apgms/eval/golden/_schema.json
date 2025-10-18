@@ -1,0 +1,125 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EngineGoldenCase",
+  "description": "Golden case specification for validating the engine invariants harness.",
+  "type": "object",
+  "required": ["name", "description", "input", "expected"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Short machine-readable identifier for the case."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human readable summary of what the case validates."
+    },
+    "input": {
+      "type": "object",
+      "required": ["gate", "transactions"],
+      "additionalProperties": false,
+      "properties": {
+        "gate": {
+          "type": "object",
+          "required": ["open", "threshold"],
+          "additionalProperties": false,
+          "properties": {
+            "open": {
+              "type": "boolean",
+              "description": "Whether the engine gate is expected to be open before evaluation."
+            },
+            "threshold": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Risk score threshold for auto approval."
+            }
+          }
+        },
+        "transactions": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Set of transactions that should be processed by the engine in order.",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "amount", "risk_score"],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the transaction."
+              },
+              "type": {
+                "type": "string",
+                "enum": ["credit", "debit"],
+                "description": "Direction of cash movement from the engine point of view."
+              },
+              "amount": {
+                "type": ["number", "string"],
+                "description": "Transaction amount prior to sign normalization. Strings are parsed as decimal numbers."
+              },
+              "risk_score": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Normalized risk score between 0 (low risk) and 1 (high risk)."
+              },
+              "note": {
+                "type": "string",
+                "description": "Optional description for debugging context.",
+                "nullable": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "required": ["gate_open", "approved", "rejected", "net"],
+      "additionalProperties": false,
+      "properties": {
+        "gate_open": {
+          "type": "boolean",
+          "description": "Whether the gate is expected to remain open after evaluation."
+        },
+        "approved": {
+          "type": "object",
+          "required": ["ids", "total"],
+          "additionalProperties": false,
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Transaction identifiers that should be approved in order."
+            },
+            "total": {
+              "type": "number",
+              "description": "Signed sum of approved transaction amounts rounded to cents."
+            }
+          }
+        },
+        "rejected": {
+          "type": "object",
+          "required": ["ids", "total"],
+          "additionalProperties": false,
+          "properties": {
+            "ids": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Transaction identifiers that should be rejected in order."
+            },
+            "total": {
+              "type": "number",
+              "description": "Signed sum of rejected transaction amounts rounded to cents."
+            }
+          }
+        },
+        "net": {
+          "type": "number",
+          "description": "Sum of approved and rejected totals; represents the total signed cash flow."
+        }
+      }
+    }
+  }
+}

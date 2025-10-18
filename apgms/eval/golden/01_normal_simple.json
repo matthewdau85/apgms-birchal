@@ -1,0 +1,24 @@
+{
+  "name": "normal_simple",
+  "description": "Baseline flow with the gate open and a single high-risk credit that should be rejected.",
+  "input": {
+    "gate": { "open": true, "threshold": 0.7 },
+    "transactions": [
+      { "id": "txn_capital_in", "type": "credit", "amount": 1000, "risk_score": 0.2, "note": "Initial capital injection" },
+      { "id": "txn_vendor_payout", "type": "debit", "amount": 200, "risk_score": 0.3, "note": "Routine vendor payment" },
+      { "id": "txn_high_risk", "type": "credit", "amount": 500, "risk_score": 0.92, "note": "Flagged credit should not auto settle" }
+    ]
+  },
+  "expected": {
+    "gate_open": true,
+    "approved": {
+      "ids": ["txn_capital_in", "txn_vendor_payout"],
+      "total": 800
+    },
+    "rejected": {
+      "ids": ["txn_high_risk"],
+      "total": 500
+    },
+    "net": 1300
+  }
+}
