@@ -13,6 +13,9 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  allocations Allocation[]
+  alerts      AnomalyAlert[]
+  auditLogs   AuditLog[]
 }
 
 model User {
@@ -33,4 +36,79 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+  alerts    AnomalyAlert[]
+}
+
+model Allocation {
+  id                 String        @id @default(cuid())
+  org                Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId              String
+  payee              String
+  thresholdAmount    Decimal?
+  velocityCountLimit Int?
+  velocityAmountLimit Decimal?
+  velocityWindowDays Int           @default(7)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  alerts             AnomalyAlert[]
+}
+
+enum AnomalyType {
+  THRESHOLD_BREACH
+  VELOCITY_SPIKE
+}
+
+enum AnomalyStatus {
+  OPEN
+  TRIAGED
+  ESCALATED
+  RESOLVED
+}
+
+enum AnomalySeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AuditActionType {
+  ANOMALY_CREATED
+  ANOMALY_TRIAGED
+  ANOMALY_ESCALATED
+}
+
+model AnomalyAlert {
+  id            String          @id @default(cuid())
+  org           Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  bankLine      BankLine?       @relation(fields: [bankLineId], references: [id], onDelete: SetNull)
+  bankLineId    String?
+  allocation    Allocation?     @relation(fields: [allocationId], references: [id], onDelete: SetNull)
+  allocationId  String?
+  type          AnomalyType
+  status        AnomalyStatus   @default(OPEN)
+  severity      AnomalySeverity @default(MEDIUM)
+  message       String
+  metadata      Json?
+  triagedAt     DateTime?
+  escalatedAt   DateTime?
+  resolvedAt    DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  auditLogs     AuditLog[]
+}
+
+model AuditLog {
+  id        String          @id @default(cuid())
+  org       Org             @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  alert     AnomalyAlert?    @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  alertId   String?
+  actor     String
+  action    AuditActionType
+  notes     String?
+  context   Json?
+  createdAt DateTime         @default(now())
 }
