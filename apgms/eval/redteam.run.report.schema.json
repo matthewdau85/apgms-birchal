@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://apgms.local/schemas/redteam.run.report.schema.json",
+  "title": "RedTeamRunReport",
+  "type": "object",
+  "required": [
+    "total",
+    "passed",
+    "failed",
+    "failed_cases"
+  ],
+  "properties": {
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "passed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failed_cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/failedCase"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "failedCase": {
+      "type": "object",
+      "required": [
+        "id",
+        "reasons"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9]{2}_[a-z0-9_]+$"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
