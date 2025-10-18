@@ -10,6 +10,16 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import {
+  getRptToken,
+  listLedgerEntries,
+  mintRpt,
+  recordLedgerEntry,
+  storeRptToken,
+  verifyChain,
+  verifyRpt,
+} from "./lib/rpt";
+import { z } from "zod";
 
 const app = Fastify({ logger: true });
 
@@ -62,6 +72,78 @@ app.post("/bank-lines", async (req, rep) => {
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+const allocationSchema = z.object({
+  accountId: z.string(),
+  amount: z.union([z.string(), z.number()]).transform((value) => String(value)),
+});
+
+const allocationRequestSchema = z.object({
+  orgId: z.string(),
+  bankLineId: z.string(),
+  policyHash: z.string(),
+  allocations: z.array(allocationSchema).min(1),
+  prevHash: z.string().nullable().optional(),
+});
+
+app.post("/allocations/preview", async (req, rep) => {
+  try {
+    const parsed = allocationRequestSchema.parse(req.body ?? {});
+    const rpt = mintRpt({
+      orgId: parsed.orgId,
+      bankLineId: parsed.bankLineId,
+      policyHash: parsed.policyHash,
+      allocations: parsed.allocations,
+      prevHash: parsed.prevHash ?? null,
+    });
+    verifyRpt(rpt);
+    return rep.send({ rpt });
+  } catch (err) {
+    req.log.error(err);
+    return rep.code(400).send({ error: "invalid_request" });
+  }
+});
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const parsed = allocationRequestSchema.parse(req.body ?? {});
+    const rpt = mintRpt({
+      orgId: parsed.orgId,
+      bankLineId: parsed.bankLineId,
+      policyHash: parsed.policyHash,
+      allocations: parsed.allocations,
+      prevHash: parsed.prevHash ?? null,
+    });
+    verifyRpt(rpt);
+    storeRptToken(rpt);
+    const ledgerEntry = recordLedgerEntry({
+      orgId: rpt.orgId,
+      bankLineId: rpt.bankLineId,
+      rptHash: rpt.hash,
+      allocations: rpt.allocations,
+    });
+    return rep.code(201).send({ rpt, ledgerEntry });
+  } catch (err) {
+    req.log.error(err);
+    return rep.code(400).send({ error: "invalid_request" });
+  }
+});
+
+app.get("/audit/rpt/:id", async (req, rep) => {
+  try {
+    const { id } = req.params as { id: string };
+    const rpt = getRptToken(id);
+    if (!rpt) {
+      return rep.code(404).send({ error: "not_found" });
+    }
+    verifyRpt(rpt);
+    verifyChain(id);
+    return rep.send({ rpt, ledgerEntries: listLedgerEntries().filter((entry) => entry.rptHash === id) });
+  } catch (err) {
+    req.log.error(err);
+    return rep.code(400).send({ error: "verification_failed" });
   }
 });
 
