@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,25 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  prod-profile-checks:
+    name: Prod profile checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: pnpm prod-profile:test
+        env:
+          NODE_ENV: production
+          CORS_ALLOWLIST: https://app.example.com
+      - name: Upload prod profile report
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-profile-report
+          path: reports/prod-profile-check.json
