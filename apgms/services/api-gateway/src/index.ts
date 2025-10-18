@@ -10,8 +10,12 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { enableOtelIfRequested } from "./observability/otel";
 
 const app = Fastify({ logger: true });
+
+const otel = enableOtelIfRequested();
+await otel.start();
 
 await app.register(cors, { origin: true });
 
@@ -19,6 +23,10 @@ await app.register(cors, { origin: true });
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+
+app.get("/protected", async (_req, rep) => {
+  return rep.code(401).send({ error: "unauthorized" });
+});
 
 // List users (email + org)
 app.get("/users", async () => {
@@ -73,8 +81,42 @@ app.ready(() => {
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
+let shuttingDown = false;
+
+const shutdown = async (signal?: NodeJS.Signals) => {
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+  app.log.info({ signal }, "received shutdown signal");
+  try {
+    await app.close();
+  } catch (error) {
+    app.log.error(error, "failed to close app");
+  }
+  try {
+    await otel.shutdown();
+  } catch (error) {
+    app.log.error(error, "failed to shutdown otel");
+  }
+  if (signal) {
+    process.exit(0);
+  }
+};
+
+process.on("SIGINT", () => {
+  void shutdown("SIGINT");
 });
+
+process.on("SIGTERM", () => {
+  void shutdown("SIGTERM");
+});
+
+try {
+  await app.listen({ port, host });
+} catch (err) {
+  app.log.error(err);
+  await shutdown();
+  process.exit(1);
+}
 
