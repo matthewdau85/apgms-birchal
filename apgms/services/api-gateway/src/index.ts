@@ -1,4 +1,5 @@
-﻿import path from "node:path";
+import crypto from "node:crypto";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -9,7 +10,10 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "../../../shared/src/db";
+import { appendAuditBlob } from "./lib/audit";
 
 const app = Fastify({ logger: true });
 
@@ -65,6 +69,47 @@ app.post("/bank-lines", async (req, rep) => {
   }
 });
 
+const allocationApplySchema = z
+  .object({
+    orgId: z.string().min(1),
+    allocationId: z.string().min(1),
+    amount: z.coerce.number(),
+  })
+  .passthrough();
+
+app.post("/allocations/apply", async (req, rep) => {
+  try {
+    const data = allocationApplySchema.parse(req.body ?? {});
+
+    const mintedRpt = {
+      ...data,
+      amount: data.amount,
+      rptId: crypto.randomUUID(),
+      mintedAt: new Date().toISOString(),
+    } as Prisma.JsonObject;
+
+    const previousAudit = await prisma.auditBlob.findFirst({
+      where: { orgId: data.orgId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const audit = await appendAuditBlob({
+      orgId: data.orgId,
+      type: "allocation.apply",
+      payload: mintedRpt,
+      prevHash: previousAudit?.hash ?? null,
+    });
+
+    return rep.code(201).send({ rpt: mintedRpt, audit });
+  } catch (e) {
+    req.log.error(e);
+    if (e instanceof z.ZodError) {
+      return rep.code(400).send({ error: "invalid_allocation_request" });
+    }
+    return rep.code(500).send({ error: "allocation_apply_failed" });
+  }
+});
+
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
   app.log.info(app.printRoutes());
@@ -77,4 +122,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-

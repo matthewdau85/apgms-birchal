@@ -13,6 +13,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  audits    AuditBlob[]
 }
 
 model User {
@@ -34,3 +35,17 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model AuditBlob {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  type      String
+  payload   Json
+  hash      String   @unique
+  prevHash  String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId, createdAt])
+}
+
