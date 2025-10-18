@@ -1,6 +1,7 @@
 ﻿node_modules/
 dist/
 coverage/
+var/
 .env*
 .DS_Store
 .vscode/

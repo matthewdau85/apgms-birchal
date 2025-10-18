@@ -1,0 +1,19 @@
+services:
+  sbr:
+    image: node:20
+    working_dir: /workspace/apgms
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      - |
+        corepack enable pnpm \
+        && pnpm install \
+        && pnpm --filter @apgms/sbr dev
+    environment:
+      NODE_ENV: development
+      PORT: 3300
+    ports:
+      - "3300:3300"
+    volumes:
+      - ../..:/workspace
+      - ../../var/as4:/workspace/apgms/var/as4
+    depends_on: []
