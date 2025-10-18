@@ -12,7 +12,12 @@ model Org {
   name      String
   createdAt DateTime @default(now())
   users     User[]
-  lines     BankLine[]
+  lines          BankLine[]
+  policies       Policy[]
+  gates          Gate[]
+  ledgerEntries  LedgerEntry[]
+  rptTokens      RptToken[]
+  audits         AuditBlob[]
 }
 
 model User {
@@ -29,8 +34,64 @@ model BankLine {
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
   date      DateTime
-  amount    Decimal
+  amountCents Int
   payee     String
   desc      String
+  createdAt DateTime @default(now())
+  ledgerEntries LedgerEntry[]
+  rptTokens     RptToken[]
+}
+
+model Policy {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  name      String
+  rules     Json
+  createdAt DateTime @default(now())
+}
+
+model Gate {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  name      String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+}
+
+model LedgerEntry {
+  id          String    @id @default(cuid())
+  org         Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  bankLine    BankLine  @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId  String
+  bucket      String
+  amountCents Int
+  createdAt   DateTime  @default(now())
+}
+
+model RptToken {
+  id          String    @id @default(cuid())
+  rptId       String    @unique
+  org         Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  bankLine    BankLine  @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId  String
+  policyHash  String
+  allocations Json
+  prevHash    String
+  sig         String
+  timestamp   DateTime
+}
+
+model AuditBlob {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  type      String
+  payload   Json
+  prevHash  String
+  hash      String
   createdAt DateTime @default(now())
 }
