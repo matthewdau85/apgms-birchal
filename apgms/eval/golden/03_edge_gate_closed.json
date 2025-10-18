@@ -1,0 +1,11 @@
+{
+  "route": "allocations.apply",
+  "input": {
+    "allocationId": "A-443",
+    "gateOpen": false
+  },
+  "expect": {
+    "status": "blocked",
+    "reason": "gate_closed"
+  }
+}
