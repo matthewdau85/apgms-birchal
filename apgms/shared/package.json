@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./policy-engine": {
+      "types": "./policy-engine/index.ts",
+      "default": "./policy-engine/index.ts"
+    }
+  },
   "scripts": {
     "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
     "build": "echo building shared"
