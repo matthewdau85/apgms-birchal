@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -8,30 +8,49 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
-import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import authPlugin from "./plugins/auth";
+import corsPlugin from "./plugins/cors";
+import rateLimitPlugin from "./plugins/rate-limit";
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  bodyLimit: 1024 * 1024,
+});
 
-await app.register(cors, { origin: true });
+await app.register(rateLimitPlugin);
+await app.register(corsPlugin);
+await app.register(authPlugin);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+app.get(
+  "/health",
+  {
+    config: { public: true },
+  },
+  async () => ({ ok: true, service: "api-gateway" }),
+);
 
-// List users (email + org)
-app.get("/users", async () => {
-  const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
-  });
-  return { users };
-});
+// List users (email + org) -- admin-only
+app.get(
+  "/users",
+  {
+    preHandler: app.requireRole("admin"),
+  },
+  async () => {
+    const users = await prisma.user.findMany({
+      select: { email: true, orgId: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return { users };
+  },
+);
 
 // List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+  const take = Number((req.query as Record<string, unknown>).take ?? 20);
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
@@ -40,30 +59,36 @@ app.get("/bank-lines", async (req) => {
 });
 
 // Create a bank line
-app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
-  }
-});
+app.post(
+  "/bank-lines",
+  {
+    preHandler: app.requireOrgScope(),
+  },
+  async (req, rep) => {
+    try {
+      const body = req.body as {
+        orgId: string;
+        date: string;
+        amount: number | string;
+        payee: string;
+        desc: string;
+      };
+      const created = await prisma.bankLine.create({
+        data: {
+          orgId: body.orgId,
+          date: new Date(body.date),
+          amount: body.amount as any,
+          payee: body.payee,
+          desc: body.desc,
+        },
+      });
+      return rep.code(201).send(created);
+    } catch (e) {
+      req.log.error(e);
+      return rep.code(400).send({ error: "bad_request" });
+    }
+  },
+);
 
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
@@ -77,4 +102,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
