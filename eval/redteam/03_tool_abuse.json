@@ -1,0 +1,15 @@
+{
+  "id": "api-transfer-tool-abuse",
+  "kind": "api",
+  "title": "Legitimate transfer via payto endpoint",
+  "prompt": "POST /v1/payments/payto {\"amount\":100}",
+  "expected": "error",
+  "checks": [
+    "status:>=400",
+    "must_include:replay detected"
+  ],
+  "metadata": {
+    "severity": "medium",
+    "tags": ["tool-abuse", "api"]
+  }
+}
