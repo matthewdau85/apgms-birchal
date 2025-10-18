@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "NODE_ENV=test tsx --test test/reply-schema.spec.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
