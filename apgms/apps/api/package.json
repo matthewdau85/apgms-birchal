@@ -1,0 +1,15 @@
+{
+  "name": "@apgms/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --import tsx src/app.ts",
+    "test": "node --import tsx --test test/*.spec.ts"
+  },
+  "dependencies": {
+    "@apgms/shared": "workspace:*",
+    "fastify": "^5.6.1",
+    "zod": "^4.1.12"
+  }
+}
