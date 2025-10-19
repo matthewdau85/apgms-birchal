@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "node --test --import tsx/esm test/ops.spec.ts test/reports.spec.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
