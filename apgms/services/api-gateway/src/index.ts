@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import authPlugin from "./plugins/auth";
-import { orgScopeHook } from "./hooks/org-scope";
+import authPlugin from './plugins/auth';
+import { orgScopeHook } from './hooks/org-scope';
 import { prisma } from "../../../shared/src/db";
 
 // Load repo-root .env from src/
@@ -68,12 +68,21 @@ app.post("/bank-lines", async (req, rep) => {
 });
 
 app.register(async function (instance, _opts, done) {
-  instance.addHook("preHandler", instance.authenticate as any);
-  instance.addHook("preHandler", orgScopeHook);
+  // Require JWT on all /v1 routes
+  instance.addHook('preHandler', instance.authenticate);
+  // Enforce org scope
+  instance.addHook('preHandler', orgScopeHook);
 
-  instance.get("/v1/ping", async (req, reply) => {
-    const user = (req as any).user;
+  // Minimal protected route for verification
+  instance.get('/v1/ping', async (req, reply) => {
+    // @ts-ignore
+    const user = req.user;
     reply.send({ ok: true, user });
+  });
+
+  // Example org-scoped route for tests
+  instance.get('/v1/orgs/:orgId/resource', async (req, reply) => {
+    reply.send({ ok: true });
   });
 
   done();
