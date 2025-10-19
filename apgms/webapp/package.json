@@ -1,1 +1,35 @@
-{"name":"@apgms/webapp","version":"0.1.0","private":true,"scripts":{"build":"echo build webapp","test":"echo test webapp"}}
+{
+  "name": "@apgms/webapp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 4173",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.59.14",
+    "@tanstack/react-query-devtools": "^5.59.14",
+    "@tanstack/react-router": "^1.66.3",
+    "@tanstack/router-devtools": "^1.66.3",
+    "focus-trap-react": "^10.2.1",
+    "recharts": "^2.10.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "@types/focus-trap-react": "^9.0.7",
+    "@types/react": "^18.3.7",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.7.1",
+    "autoprefixer": "^10.4.20",
+    "axe-core": "^4.10.2",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
