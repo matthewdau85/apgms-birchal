@@ -1,18 +1,24 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id           String         @id @default(cuid())
+  name         String
+  createdAt    DateTime       @default(now())
+  users        User[]
+  lines        BankLine[]
+  policies     Policy[]
+  gates        Gate[]
+  ledger       LedgerEntry[]
+  rptTokens    RptToken[]
+  auditBlobs   AuditBlob[]
 }
 
 model User {
@@ -25,12 +31,77 @@ model User {
 }
 
 model BankLine {
+  id           String        @id @default(cuid())
+  org          Org           @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  date         DateTime
+  amount       Decimal
+  payee        String
+  desc         String
+  createdAt    DateTime      @default(now())
+  ledgerEntries LedgerEntry[]
+  rptTokens     RptToken[]
+}
+
+model Policy {
   id        String   @id @default(cuid())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
+  name      String
+  version   Int
+  state     String
+  rulesJson Json
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  gates     Gate[]
+}
+
+model Gate {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  policy    Policy?  @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  policyId  String?
+  state     String
+  opensAt   DateTime?
+  closesAt  DateTime?
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  bankLine    BankLine @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId  String
+  bucket      String
+  amountCents Int
+  currency    String
+  memo        String?
+  createdAt   DateTime @default(now())
+}
+
+model RptToken {
+  id             String   @id
+  org            Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId          String
+  bankLine       BankLine @relation(fields: [bankLineId], references: [id], onDelete: Cascade)
+  bankLineId     String
+  policyHash     String
+  allocationsJson Json
+  prevHash       String
+  sig            String
+  timestamp      DateTime
+}
+
+model AuditBlob {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  kind       String
+  payloadJson Json
+  hash       String
+  createdAt  DateTime @default(now())
 }
