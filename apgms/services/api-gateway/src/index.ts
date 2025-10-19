@@ -10,8 +10,11 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import config from "./config";
 
 const app = Fastify({ logger: true });
+
+app.log?.info?.({ env: config.NODE_ENV, port: config.PORT }, "config_loaded");
 
 await app.register(cors, { origin: true });
 
