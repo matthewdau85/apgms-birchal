@@ -1,0 +1,104 @@
+{
+  "cases": [
+    {
+      "id": "golden-001",
+      "description": "Summarize a short policy statement",
+      "prompt": "Summarize the following policy update in one sentence: ...",
+      "expected": "Provides a concise and accurate summary of the policy update.",
+      "actual": "Provides a concise and accurate summary of the policy update.",
+      "validity": 1,
+      "passed": true,
+      "tags": ["summarization", "policy"]
+    },
+    {
+      "id": "golden-002",
+      "description": "Generate a safe completion for a customer support request",
+      "prompt": "Draft a polite response to a customer asking about account deletion.",
+      "expected": "Explains the deletion process and provides support contact details.",
+      "actual": "Explains the deletion process and provides support contact details.",
+      "validity": 0.99,
+      "passed": true,
+      "tags": ["support"]
+    },
+    {
+      "id": "golden-003",
+      "description": "Translate a product announcement into Spanish",
+      "prompt": "Translate: 'We are launching a new analytics dashboard next month.'",
+      "expected": "An accurate Spanish translation without extra commentary.",
+      "actual": "Un lanzamiento preciso y neutral del anuncio en español.",
+      "validity": 0.995,
+      "passed": true,
+      "tags": ["translation"]
+    },
+    {
+      "id": "golden-004",
+      "description": "Rewrite text to remove personally identifiable information",
+      "prompt": "Remove personal details from: 'Contact Jane Doe at 555-1234 for assistance.'",
+      "expected": "Rewrites the sentence without the specific name or phone number.",
+      "actual": "Rewrites the sentence without the specific name or phone number.",
+      "validity": 0.996,
+      "passed": true,
+      "tags": ["privacy"]
+    },
+    {
+      "id": "golden-005",
+      "description": "Classify sentiment of a user review",
+      "prompt": "Review: 'The app keeps crashing and I'm frustrated.'",
+      "expected": "Labels the sentiment as negative and suggests empathy.",
+      "actual": "Labels the sentiment as negative and suggests empathy.",
+      "validity": 0.998,
+      "passed": true,
+      "tags": ["sentiment"]
+    },
+    {
+      "id": "golden-006",
+      "description": "Summarize a meeting transcript",
+      "prompt": "Provide key takeaways from a short meeting discussing feature rollout.",
+      "expected": "Highlights timeline, stakeholders, and next steps accurately.",
+      "actual": "Highlights timeline, stakeholders, and next steps accurately.",
+      "validity": 0.997,
+      "passed": true,
+      "tags": ["summarization"]
+    },
+    {
+      "id": "golden-007",
+      "description": "Draft a neutral response to a social media complaint",
+      "prompt": "Respond to: 'Your service was terrible and I'm never coming back.'",
+      "expected": "Acknowledges frustration and offers to resolve offline politely.",
+      "actual": "Acknowledges frustration and offers to resolve offline politely.",
+      "validity": 0.993,
+      "passed": true,
+      "tags": ["support", "tone"]
+    },
+    {
+      "id": "golden-008",
+      "description": "Generate a knowledge base article introduction",
+      "prompt": "Create an intro for troubleshooting Wi-Fi connectivity issues.",
+      "expected": "Sets expectations and guides the reader to follow troubleshooting steps.",
+      "actual": "Sets expectations and guides the reader to follow troubleshooting steps.",
+      "validity": 0.992,
+      "passed": true,
+      "tags": ["knowledge-base"]
+    },
+    {
+      "id": "golden-009",
+      "description": "Summarize terms of service updates",
+      "prompt": "Summarize highlights of the updated terms of service for customers.",
+      "expected": "Mentions privacy policy alignment, data retention updates, and user consent.",
+      "actual": "Mentions privacy policy alignment, data retention updates, and user consent.",
+      "validity": 0.991,
+      "passed": true,
+      "tags": ["policy"]
+    },
+    {
+      "id": "golden-010",
+      "description": "Answer a frequently asked question about billing cycles",
+      "prompt": "Explain when invoices are generated for premium accounts.",
+      "expected": "Clarifies billing cycle timing and how to view invoices.",
+      "actual": "Clarifies billing cycle timing and how to view invoices.",
+      "validity": 0.99,
+      "passed": false,
+      "tags": ["billing"]
+    }
+  ]
+}
