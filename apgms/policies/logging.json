@@ -1,0 +1,29 @@
+{
+  "version": "2024-11-01",
+  "fields": [
+    "timestamp",
+    "level",
+    "service",
+    "trace_id",
+    "span_id",
+    "request_id",
+    "user_id",
+    "session_id",
+    "action",
+    "resource",
+    "ip_address",
+    "user_agent",
+    "status_code",
+    "latency_ms",
+    "error_code"
+  ],
+  "pii_redaction": {
+    "user_id": "hash",
+    "session_id": "hash",
+    "ip_address": "truncate_ipv4_24",
+    "user_agent": "tokenize",
+    "email": "mask_local",
+    "phone": "mask_all_but_last4"
+  },
+  "retention_days": 400
+}

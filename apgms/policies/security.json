@@ -1,0 +1,20 @@
+{
+  "version": "2024-11-01",
+  "mfa_required": true,
+  "cors_allowlist": [
+    "https://app.apgms.example",
+    "https://admin.apgms.example"
+  ],
+  "rate_limit_rpm": {
+    "public_api": 900,
+    "internal_api": 1800,
+    "auth": 120
+  },
+  "body_limit_kb": 512,
+  "idp_issuer": "https://idp.okta.com/app/apgms",
+  "token_aud": [
+    "apgms-api",
+    "apgms-admin"
+  ],
+  "last_reviewed": "2024-10-15"
+}
