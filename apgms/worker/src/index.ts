@@ -1,1 +1,1 @@
-﻿console.log('worker');
+export * from "./jobs/redact.js";
