@@ -1,0 +1,23 @@
+[
+  {
+    "name": "bad-signature",
+    "description": "Attempt to forge a webhook by providing a mismatched HMAC signature.",
+    "request": {
+      "method": "POST",
+      "path": "/webhooks",
+      "headers": {
+        "Idempotency-Key": "sig-key",
+        "X-Nonce": "nonce-sig",
+        "X-Timestamp": "1690000000000",
+        "X-Signature": "not-the-right-signature"
+      },
+      "body": {
+        "action": "sweep_funds"
+      }
+    },
+    "expected": {
+      "status": 401,
+      "error": "invalid_signature"
+    }
+  }
+]
