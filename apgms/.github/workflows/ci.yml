@@ -3,6 +3,20 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -13,5 +27,10 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm i
+      - name: Check Prisma migrations are in sync
+        run: pnpm -w exec prisma migrate status --schema shared/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app?schema=public
+          SHADOW_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app?schema=shadow
       - run: pnpm -r build
       - run: pnpm -r test
