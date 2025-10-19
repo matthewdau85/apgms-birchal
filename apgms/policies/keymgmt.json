@@ -1,0 +1,24 @@
+{
+  "version": "2024-11-01",
+  "kms_provider": "aws-kms",
+  "key_aliases": {
+    "data_encryption": "alias/apgms/data",
+    "token_signing": "alias/apgms/token",
+    "backup_encryption": "alias/apgms/backup"
+  },
+  "rotation_schedule_days": {
+    "data_encryption": 180,
+    "token_signing": 90,
+    "backup_encryption": 365
+  },
+  "hsm_required": true,
+  "certificate_pinning": {
+    "as4_client": true,
+    "as4_server": true,
+    "pin_set_id": "as4-prod-2024q4"
+  },
+  "escrow_contacts": [
+    "security@apgms.example",
+    "compliance@apgms.example"
+  ]
+}

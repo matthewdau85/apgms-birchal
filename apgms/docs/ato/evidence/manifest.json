@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2025-10-19T01:05:26.406Z",
+  "repoRoot": "/workspace/apgms-birchal/apgms",
+  "items": {
+    "sbom": {
+      "status": "missing",
+      "description": "Latest Software Bill of Materials export.",
+      "files": []
+    },
+    "sca": {
+      "status": "missing",
+      "description": "Software Composition Analysis results.",
+      "files": []
+    },
+    "redteam_reports": {
+      "status": "missing",
+      "description": "Red team assessment artefacts.",
+      "files": []
+    },
+    "golden_reports": {
+      "status": "missing",
+      "description": "Golden path / positive control reports.",
+      "files": []
+    },
+    "otel_samples": {
+      "status": "missing",
+      "description": "OTEL telemetry samples captured from evidence collectors.",
+      "files": []
+    },
+    "audit_log_samples": {
+      "status": "missing",
+      "description": "Immutable audit log extracts for verification.",
+      "files": []
+    }
+  }
+}
