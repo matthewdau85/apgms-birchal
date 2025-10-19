@@ -34,3 +34,12 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model OnboardingDraft {
+  id        String   @id @default(cuid())
+  orgId     String?
+  token     String   @unique
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
