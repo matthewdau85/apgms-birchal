@@ -10,7 +10,13 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/services-shared/*": ["services/shared/src/*"],
+      "@apgms/payments/*": ["services/payments/src/*"],
+      "@apgms/api-gateway/*": ["services/api-gateway/src/*"],
+      "@apgms/worker/*": ["worker/src/*"],
+      "vitest": ["tests/support/vitest"],
+      "vitest/*": ["tests/support/vitest"]
     }
   }
 }
