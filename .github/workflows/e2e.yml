@@ -1,8 +1,11 @@
-﻿name: E2E
+name: E2E
 on: [workflow_dispatch]
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -10,8 +13,9 @@ jobs:
           version: 9
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
-      - run: pnpm i
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
       - run: docker compose up -d
       - run: pnpm -w exec playwright test
