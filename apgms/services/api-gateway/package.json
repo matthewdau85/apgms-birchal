@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "build": "tsc --noEmit",
+    "test": "tsx --test test/jwt-rotation.test.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
