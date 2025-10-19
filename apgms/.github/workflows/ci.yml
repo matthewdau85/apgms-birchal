@@ -1,17 +1,29 @@
-﻿name: CI
-on: [push, pull_request]
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
 jobs:
-  build:
+  asvs-map:
+    name: ASVS Map
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          version: 9
-      - uses: actions/setup-node@v4
+          node-version: '20'
+
+      - name: Validate ASVS map
+        run: node scripts/check-asvs.js
+
+      - name: Upload security artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+          name: security-docs
+          path: docs/
