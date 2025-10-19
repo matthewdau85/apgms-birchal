@@ -15,3 +15,49 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  webapp-e2e:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build webapp
+        run: pnpm --filter webapp run build
+      - name: Start API and webapp
+        run: |
+          pnpm --filter @apgms/api-gateway run dev &
+          API_PID=$!
+          pnpm --filter webapp run dev -- --host 0.0.0.0 --port 4173 &
+          WEBAPP_PID=$!
+          echo "API_PID=$API_PID" >> $GITHUB_ENV
+          echo "WEBAPP_PID=$WEBAPP_PID" >> $GITHUB_ENV
+      - name: Run accessibility tests
+        run: npm run web:test:a11y
+      - name: Run end-to-end tests
+        run: npm run web:test:e2e
+      - name: Stop services
+        if: always()
+        run: |
+          if [ -n "${API_PID:-}" ]; then
+            kill $API_PID || true
+          fi
+          if [ -n "${WEBAPP_PID:-}" ]; then
+            kill $WEBAPP_PID || true
+          fi
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
