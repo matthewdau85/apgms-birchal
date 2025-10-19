@@ -13,6 +13,8 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  providerConnections ProviderConnection[]
+  auditBlobs AuditBlob[]
 }
 
 model User {
@@ -32,5 +34,38 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  externalId String?
+  provider   String?
   createdAt DateTime @default(now())
+
+  @@unique([orgId, externalId])
+}
+
+model ProviderConnection {
+  id           String   @id @default(cuid())
+  org          Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  provider     String
+  status       String   @db.VarChar(16)
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  meta         Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([orgId, provider])
+}
+
+model AuditBlob {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  provider   String
+  type       String
+  externalId String
+  payload    Json
+  createdAt  DateTime @default(now())
+
+  @@unique([provider, externalId, type])
 }
