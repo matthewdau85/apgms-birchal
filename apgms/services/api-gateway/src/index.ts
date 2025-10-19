@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -8,17 +8,60 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
-import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import rateLimit from "@fastify/rate-limit";
 import { prisma } from "../../../shared/src/db";
+import authPlugin from "./plugins/auth";
+import { orgScopeHook } from "./hooks/org-scope";
+import openapiPlugin from "./plugins/openapi";
+import redisPlugin from "./plugins/redis";
+import idempotencyPlugin from "./plugins/idempotency";
+import corsAllowlistPlugin from "./plugins/cors-allowlist";
+import requestIdPlugin from "./plugins/request-id";
+import auditPlugin from "./plugins/audit";
+import metricsPlugin from "./plugins/metrics";
+import healthPlugin from "./plugins/health";
+import tracingPlugin from "./plugins/tracing";
+import { reportsRoutes } from "./routes/v1/reports";
+import { bankLinesRoutes } from "./routes/v1/bank-lines";
 
-const app = Fastify({ logger: true });
+const { default: config } = await import("./config");
 
-await app.register(cors, { origin: true });
+const app = Fastify({ logger: { level: config.LOG_LEVEL } });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.log.info({ env: config.NODE_ENV, port: config.PORT }, "config_loaded");
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+await app.register(helmet);
+await app.register(requestIdPlugin);
+await app.register(corsAllowlistPlugin);
+await app.register(rateLimit, {
+  max: config.RATE_LIMIT_MAX,
+  timeWindow: config.RATE_LIMIT_WINDOW,
+});
+await app.register(auditPlugin);
+await app.register(redisPlugin);
+await app.register(idempotencyPlugin);
+await app.register(tracingPlugin);
+await app.register(metricsPlugin);
+await app.register(healthPlugin);
+await app.register(authPlugin);
+await app.register(openapiPlugin);
+
+await app.register(reportsRoutes);
+
+app.register(async function (instance, _opts, done) {
+  instance.addHook('preHandler', instance.authenticate);
+  instance.addHook('preHandler', orgScopeHook);
+
+  instance.get('/v1/ping', async (req, reply) => {
+    // @ts-ignore
+    const user = req.user;
+    reply.send({ ok: true, user });
+  });
+
+  await instance.register(bankLinesRoutes);
+  done();
+});
 
 // List users (email + org)
 app.get("/users", async () => {
@@ -70,11 +113,10 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
+const port = config.PORT;
 const host = "0.0.0.0";
 
 app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
