@@ -1,0 +1,14 @@
+vendor: "Intuit QuickBooks Online"
+data_categories:
+  - "General ledger balances"
+  - "Accounts payable and receivable"
+  - "Invoice attachments metadata"
+auth: "OAuth 2.0 with refresh tokens stored in secrets manager"
+storage: "Financial extracts stored in encrypted object storage with 90-day retention."
+risks:
+  - "Financial statement tampering"
+  - "Leakage of customer invoice data"
+mitigations:
+  - "Immutable audit logs on ingestion pipeline"
+  - "Data loss prevention scanning prior to export"
+status: "approved"

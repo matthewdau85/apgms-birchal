@@ -1,0 +1,14 @@
+vendor: "Square, Inc."
+data_categories:
+  - "Transaction totals"
+  - "Itemized sales data"
+  - "Terminal identifiers"
+auth: "OAuth 2.0 with rotating client secrets"
+storage: "Encrypted at rest within APGMS regional data lake; access restricted to finance analytics role."
+risks:
+  - "Exposure of transaction-level sales data"
+  - "Privileged API tokens misuse"
+mitigations:
+  - "Scoped OAuth tokens rotated every 30 days"
+  - "Row-level access policies enforced in data lake"
+status: "approved"
