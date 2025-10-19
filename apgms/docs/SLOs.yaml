@@ -1,0 +1,44 @@
+service: api-gateway
+owner: sre@apgms.example
+last_updated: 2024-12-05
+notes: |
+  Service level objectives for the API Gateway. Latency objectives use end-to-end
+  timings gathered from Prometheus histograms exported by the Fastify HTTP server.
+  Error budgets are computed from HTTP status codes where 5xx represents a burn event.
+defaults:
+  timezone: UTC
+  evaluation_window: 7d
+  data_source: prometheus
+slos:
+  - id: p95_allocations_apply
+    description: >-
+      Maintain p95 latency for synthetic allocation apply transactions served via
+      POST /bank-lines at or below 250ms.
+    objective:
+      percentile: 95
+      threshold_ms: 250
+    indicator:
+      metric: http_request_duration_seconds
+      selector: service="api-gateway",route="/bank-lines",method="POST"
+    alert:
+      name: ApiGatewayLatencyP95TooHigh
+      doc: ../alerts/prometheus-rules.yaml
+    error_budget:
+      policy: 30d
+      burn_rate_ceiling: 2
+  - id: error_rate
+    description: >-
+      Keep gateway error rate under 1% across all HTTP requests as measured by
+      the ratio of 5xx responses to total traffic.
+    objective:
+      error_budget_percent: 1
+    indicator:
+      metric: http_requests_total
+      selector: service="api-gateway"
+    alert:
+      name: ApiGatewayElevatedErrorRate
+      doc: ../alerts/prometheus-rules.yaml
+    error_budget:
+      policy: 30d
+      fast_burn_window: 5m
+      slow_burn_window: 1h
