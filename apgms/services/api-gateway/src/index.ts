@@ -9,11 +9,40 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { redisPlugin } from "./plugins/redis";
+import { reportsRoutes } from "./routes/v1/reports";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+
+try {
+  const helmetModule = await import("@fastify/helmet");
+  const helmetPlugin = helmetModule.default ?? helmetModule;
+  await app.register(helmetPlugin as any);
+} catch (error) {
+  app.log.warn({ err: error }, "helmet plugin not available; TODO install dependency");
+}
+
+try {
+  const rateLimitModule = await import("@fastify/rate-limit");
+  const rateLimitPlugin = rateLimitModule.default ?? rateLimitModule;
+  await app.register(rateLimitPlugin as any, {
+    max: Number(process.env.RATE_LIMIT_MAX ?? 300),
+    timeWindow: "1 minute",
+  });
+} catch (error) {
+  app.log.warn(
+    { err: error },
+    "rate-limit plugin not available; TODO install dependency",
+  );
+}
+await app.register(redisPlugin);
+// await app.register(authPlugin);
+// app.addHook("preHandler", orgScopeHook);
+
+await app.register(reportsRoutes, { prefix: "/v1" });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
