@@ -11,12 +11,35 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: {
+    level: process.env.LOG_LEVEL ?? "info",
+    redact: {
+      paths: [
+        "req.headers.authorization",
+        "req.headers.cookie",
+        "req.body.password",
+        "req.body.email",
+        "req.body.token",
+        "req.body.refreshToken",
+        "req.body.accessToken",
+        "res.body.token",
+        "res.body.accessToken",
+        "res.body.refreshToken",
+        "*.token",
+        "*.secret",
+        "*.password",
+        "*.email",
+      ],
+      censor: "[REDACTED]",
+    },
+  },
+});
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+// sanity log: confirm env is loaded without leaking secrets
+app.log.info({ databaseUrlConfigured: Boolean(process.env.DATABASE_URL) }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
