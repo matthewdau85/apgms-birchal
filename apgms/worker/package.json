@@ -1,1 +1,17 @@
-{"name":"@apgms/worker","version":"0.1.0","type":"module","main":"dist/index.js","scripts":{"build":"echo build worker","test":"echo test worker"}}
+{
+  "name": "@apgms/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "gate-scheduler": "tsx src/gate-scheduler.ts",
+    "test": "echo test worker"
+  },
+  "dependencies": {
+    "@apgms/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  }
+}

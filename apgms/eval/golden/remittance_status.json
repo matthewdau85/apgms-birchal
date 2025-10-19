@@ -1,0 +1,7 @@
+{
+  "id": "remittance_status",
+  "prompt": "remittance_status request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

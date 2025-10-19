@@ -1,0 +1,7 @@
+{
+  "id": "sbr_receipt",
+  "prompt": "sbr_receipt request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

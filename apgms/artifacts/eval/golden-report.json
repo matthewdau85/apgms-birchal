@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2025-10-19T10:36:14.138Z",
+  "thresholds": {
+    "schemaValidity": 0.98,
+    "passRate": 0.9
+  },
+  "metrics": {
+    "schemaValidity": 1,
+    "passRate": 1
+  },
+  "results": [
+    {
+      "id": "audit_log",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "compliance",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "escalation",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "helpdesk",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "ledger_report",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "onboarding",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "org_summary",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "payto_agreement",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "privacy_ack",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "remittance_status",
+      "schemaValid": true,
+      "passed": true
+    },
+    {
+      "id": "sbr_receipt",
+      "schemaValid": true,
+      "passed": true
+    }
+  ]
+}

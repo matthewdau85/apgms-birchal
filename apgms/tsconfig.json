@@ -10,7 +10,12 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared": ["shared/src/index.ts"],
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/payments": ["services/payments/src/index.ts"],
+      "@apgms/payments/*": ["services/payments/src/*"],
+      "@apgms/sbr": ["services/sbr/src/index.ts"],
+      "@apgms/sbr/*": ["services/sbr/src/*"]
     }
   }
 }

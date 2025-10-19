@@ -1,0 +1,7 @@
+{
+  "id": "compliance",
+  "prompt": "compliance request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

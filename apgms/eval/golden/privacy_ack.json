@@ -1,0 +1,7 @@
+{
+  "id": "privacy_ack",
+  "prompt": "privacy_ack request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

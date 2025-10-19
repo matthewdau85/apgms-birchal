@@ -1,0 +1,60 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:7f699625-7116-49c6-acbe-5a0c1cbd8d1e",
+  "metadata": {
+    "timestamp": "2025-10-19T10:36:57.514Z",
+    "tools": [
+      {
+        "name": "apgms-sbom-script"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "@fastify/cors",
+      "version": "^11.1.0",
+      "type": "library"
+    },
+    {
+      "name": "@prisma/client",
+      "version": "6.17.1",
+      "type": "library"
+    },
+    {
+      "name": "fastify",
+      "version": "^5.6.1",
+      "type": "library"
+    },
+    {
+      "name": "zod",
+      "version": "^4.1.12",
+      "type": "library"
+    },
+    {
+      "name": "@types/node",
+      "version": "^24.7.1",
+      "type": "library"
+    },
+    {
+      "name": "prisma",
+      "version": "6.17.1",
+      "type": "library"
+    },
+    {
+      "name": "tsx",
+      "version": "^4.20.6",
+      "type": "library"
+    },
+    {
+      "name": "typescript",
+      "version": "^5.9.3",
+      "type": "library"
+    },
+    {
+      "name": "dotenv",
+      "version": "^16.6.1",
+      "type": "library"
+    }
+  ]
+}

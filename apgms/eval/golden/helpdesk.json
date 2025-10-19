@@ -1,0 +1,7 @@
+{
+  "id": "helpdesk",
+  "prompt": "helpdesk request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -8,11 +9,13 @@ datasource db {
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
   users     User[]
   lines     BankLine[]
+  agreements PayToAgreement[]
+  remittances PayToRemittance[]
 }
 
 model User {
@@ -20,6 +23,7 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  deletedAt DateTime?
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
 }
@@ -32,5 +36,50 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+}
+
+model PayToAgreement {
+  id         String   @id @default(cuid())
+  org        Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      String
+  maskedBsb  String
+  maskedAcc  String
+  createdAt  DateTime @default(now())
+}
+
+enum PayToRemitStatus {
+  QUEUED
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+model PayToRemittance {
+  id            String           @id @default(cuid())
+  org           Org              @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId         String
+  amountCents   Int
+  status        PayToRemitStatus @default(QUEUED)
+  createdAt     DateTime         @default(now())
+  processedAt   DateTime?
+  failureReason String?
+  auditBlobId   String?
+  auditBlob     AuditBlob?       @relation(fields: [auditBlobId], references: [id])
+}
+
+model GateState {
+  id        String   @id @default(cuid())
+  gateId    String   @unique
+  status    String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditBlob {
+  id        String   @id @default(cuid())
+  orgId     String?
+  scope     String
+  payload   Json
   createdAt DateTime @default(now())
 }
