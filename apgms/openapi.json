@@ -1,0 +1,239 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "APGMS API Gateway",
+    "version": "1.0.0",
+    "description": "API Gateway OpenAPI specification"
+  },
+  "paths": {
+    "/docs": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "head": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "head": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "head": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "head": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/bank-lines": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "head": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/dashboard/generate-report": {
+      "post": {
+        "summary": "Generate a dashboard report",
+        "tags": [
+          "Reports"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": "ReportRequest",
+                "type": "object",
+                "properties": {
+                  "reportType": {
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  }
+                },
+                "required": [
+                  "reportType",
+                  "startDate",
+                  "endDate"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "http://json-schema.org/draft-07/schema#",
+                  "title": "ReportOut",
+                  "type": "object",
+                  "properties": {
+                    "reportId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "reportId"
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "issues": {
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "error",
+                    "issues"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/report/{id}/download": {
+      "get": {
+        "summary": "Download a generated dashboard report",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF document",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "summary": "Download a generated dashboard report",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF document",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
