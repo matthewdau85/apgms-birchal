@@ -11,6 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify, { type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+<<<<<<< HEAD
 import piiSchema from "./schemas/pii.schema.json" assert { type: "json" };
 import {
   configurePIIProviders,
@@ -23,6 +24,9 @@ import {
 } from "./lib/pii";
 import { isValidABN, normalizeAbn } from "@apgms/shared-au/abn";
 import { isValidTFN } from "@apgms/shared-au/tfn";
+=======
+import { registerAdminDataRoutes } from "./routes/admin.data";
+>>>>>>> origin/codex/add-admin-gated-subject-data-delete-endpoint
 
 const app = Fastify({ logger: true });
 
@@ -164,6 +168,8 @@ app.post("/bank-lines", async (req, rep) => {
     return rep.code(400).send({ error: "bad_request" });
   }
 });
+
+await registerAdminDataRoutes(app);
 
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {

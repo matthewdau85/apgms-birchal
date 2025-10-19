@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
+<<<<<<< HEAD
     "test": "tsx --test test/pii.spec.ts"
+=======
+    "test": "node --import tsx --test test/admin.data.delete.spec.ts"
+>>>>>>> origin/codex/add-admin-gated-subject-data-delete-endpoint
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
