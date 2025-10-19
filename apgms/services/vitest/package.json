@@ -1,0 +1,17 @@
+{
+  "name": "vitest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "types": "./index.d.ts",
+  "bin": {
+    "vitest": "./bin/vitest.js"
+  },
+  "dependencies": {}
+}
