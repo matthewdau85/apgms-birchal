@@ -42,6 +42,15 @@ importers:
       '@fastify/cors':
         specifier: ^11.1.0
         version: 11.1.0
+      '@fastify/helmet':
+        specifier: workspace:*
+        version: link:../fastify-helmet
+      '@fastify/rate-limit':
+        specifier: workspace:*
+        version: link:../fastify-rate-limit
+      '@fastify/request-id':
+        specifier: workspace:*
+        version: link:../fastify-request-id
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
@@ -78,6 +87,12 @@ importers:
   webapp: {}
 
   worker: {}
+
+  services/fastify-helmet: {}
+
+  services/fastify-rate-limit: {}
+
+  services/fastify-request-id: {}
 
 packages:
 
