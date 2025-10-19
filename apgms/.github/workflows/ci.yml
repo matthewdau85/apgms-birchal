@@ -1,17 +1,35 @@
-﻿name: CI
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm -r build
+      - name: Prisma migrate status gate (all workspaces)
+        run: pnpm -r exec -- prisma migrate status --no-color
+      - name: Tests with coverage (fail under thresholds)
+        run: pnpm -r test -- --coverage
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          node-version: '18'
-          cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+          name: coverage
+          path: |
+            coverage
+            **/coverage
