@@ -1,0 +1,33 @@
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: pnpm i --frozen-lockfile
+      - run: pnpm -r build
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build image
+        run: docker build -t ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }} services/api-gateway
+      - name: Trivy scan
+        uses: aquasecurity/trivy-action@0.22.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }}
+          format: 'table'
+          exit-code: '0'
+      - name: Push (sha + semver)
+        run: |
+          docker push ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }}
+          docker tag ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }} ghcr.io/${{ github.repository }}/api-gateway:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository }}/api-gateway:${{ github.ref_name }}
