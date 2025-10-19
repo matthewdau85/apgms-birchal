@@ -10,13 +10,14 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { loggerOptions } from "./logger.js";
 
-const app = Fastify({ logger: true });
+const app = Fastify({ logger: loggerOptions });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+// Sanity log: confirm env is loaded without leaking secrets
+app.log.info({ databaseUrlConfigured: Boolean(process.env.DATABASE_URL) }, "Environment configuration loaded");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
