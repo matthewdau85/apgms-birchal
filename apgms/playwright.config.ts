@@ -1,22 +1,24 @@
 import { defineConfig } from '@playwright/test';
+import path from 'node:path';
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+const testDir = path.join(__dirname, 'webapp', 'tests');
 
 export default defineConfig({
-  testDir: './webapp/tests',
-  fullyParallel: true,
-  retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  testDir,
+  retries: process.env.CI ? 2 : 0,
   timeout: 60_000,
   expect: {
-    timeout: 10_000,
+    timeout: 10_000
   },
-  reporter: [
-    ['list'],
-    ['json', { outputFile: 'a11y-report.json' }],
-  ],
   use: {
-    baseURL,
-    trace: 'on-first-retry',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:4173',
+    trace: 'on-first-retry'
   },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: 'pnpm --filter @apgms/webapp dev -- --host 127.0.0.1 --port 4173',
+        port: 4173,
+        reuseExistingServer: !process.env.CI
+      }
 });
