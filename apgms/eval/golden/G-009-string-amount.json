@@ -1,0 +1,27 @@
+{
+  "id": "G-009",
+  "name": "String encoded amount",
+  "description": "Amount provided as formatted string with spaces that should still be parsed.",
+  "input": {
+    "orgId": "org-1009",
+    "bankLineId": "line-2009",
+    "rptId": "rpt-3009",
+    "policyId": "policy-core-01",
+    "gateId": "gate-string-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-999999999999",
+    "gate": "OPEN",
+    "memo": "Reimbursement of marketing advance per agreement.",
+    "amount": " 55,000.00 ",
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["marketing-invoice.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": true
+  }
+}

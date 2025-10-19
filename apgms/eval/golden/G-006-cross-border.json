@@ -1,0 +1,27 @@
+{
+  "id": "G-006",
+  "name": "Cross-border settlement",
+  "description": "Cross-border payment that stays under enhanced due diligence threshold.",
+  "input": {
+    "orgId": "org-1006",
+    "bankLineId": "line-2006",
+    "rptId": "rpt-3006",
+    "policyId": "policy-crossborder-01",
+    "gateId": "gate-fx-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-666666666666",
+    "gate": "OPEN",
+    "memo": "FX settlement for Singapore services contract.",
+    "amount": 35000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["fx-agreement.pdf", "service-contract.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": false
+  }
+}

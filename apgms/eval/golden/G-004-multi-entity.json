@@ -1,0 +1,27 @@
+{
+  "id": "G-004",
+  "name": "Multi-entity settlement",
+  "description": "Payment drawdown involving two subsidiary entities with standard approval chain.",
+  "input": {
+    "orgId": "org-1004",
+    "bankLineId": "line-2004",
+    "rptId": "rpt-3004",
+    "policyId": "policy-core-01",
+    "gateId": "gate-onboard-02",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-444444444444",
+    "gate": "OPEN",
+    "memo": "Clearing intercompany settlement for Q2 tax provision.",
+    "amount": 32000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["subsidiary-ledger.xlsx", "tax-adjustment.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": false
+  }
+}

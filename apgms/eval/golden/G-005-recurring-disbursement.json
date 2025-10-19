@@ -1,0 +1,27 @@
+{
+  "id": "G-005",
+  "name": "Recurring disbursement",
+  "description": "Recurring payroll disbursement within approved threshold and with supporting schedule.",
+  "input": {
+    "orgId": "org-1005",
+    "bankLineId": "line-2005",
+    "rptId": "rpt-3005",
+    "policyId": "policy-payroll-01",
+    "gateId": "gate-payroll-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-555555555555",
+    "gate": "OPEN",
+    "memo": "Monthly payroll run for ANZ operations.",
+    "amount": 48000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["payroll-schedule.csv", "hr-certification.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": false
+  }
+}

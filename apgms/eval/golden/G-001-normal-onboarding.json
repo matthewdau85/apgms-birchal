@@ -1,0 +1,27 @@
+{
+  "id": "G-001",
+  "name": "Normal vendor onboarding",
+  "description": "Standard onboarding payment under policy thresholds with all documents present.",
+  "input": {
+    "orgId": "org-1001",
+    "bankLineId": "line-2001",
+    "rptId": "rpt-3001",
+    "policyId": "policy-core-01",
+    "gateId": "gate-onboard-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-111111111111",
+    "gate": "OPEN",
+    "memo": "Initial vendor funding approved by procurement.",
+    "amount": 25000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["kyc-cert.pdf", "supplier-agreement.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": false
+  }
+}
