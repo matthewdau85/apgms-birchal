@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import config from "./config";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
@@ -17,6 +18,7 @@ await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.log.info({ env: config.NODE_ENV, port: config.PORT }, "config_loaded");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -70,7 +72,7 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
+const port = config.PORT;
 const host = "0.0.0.0";
 
 app.listen({ port, host }).catch((err) => {
