@@ -6,3 +6,6 @@ coverage/
 .DS_Store
 .vscode/
 **/__pycache__/
+
+# Local KMS artifacts (private keys generated outside CI)
+artifacts/kms/**/*.json
