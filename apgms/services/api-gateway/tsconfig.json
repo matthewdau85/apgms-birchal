@@ -9,7 +9,9 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@fastify/helmet": ["services/api-gateway/src/plugins/helmet"],
+      "@fastify/rate-limit": ["services/api-gateway/src/plugins/rate-limit"]
     }
   },
   "include": ["src"]
