@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -8,12 +8,12 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
-import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import securityPlugin from "./plugins/security";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+await securityPlugin(app);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -77,4 +77,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-

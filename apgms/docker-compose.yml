@@ -1,11 +1,21 @@
-﻿services:
+services:
   postgres:
     image: postgres:15
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: apgms
-      POSTGRES_PASSWORD: apgms
-      POSTGRES_DB: apgms
-    ports: ['5432:5432']
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:5432:5432"
   redis:
     image: redis:7
-    ports: ['6379:6379']
+    env_file:
+      - .env
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: >-
+      sh -c 'if [ -n "$REDIS_PASSWORD" ]; then exec redis-server --requirepass "$REDIS_PASSWORD"; else exec redis-server; fi'
+    ports:
+      - "127.0.0.1:6379:6379"
