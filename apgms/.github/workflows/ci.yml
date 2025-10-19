@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -12,6 +12,284 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
+      - run: pnpm install --frozen-lockfile
       - run: pnpm -r build
       - run: pnpm -r test
+      - name: Create audit allowlist
+        run: |
+          cat <<'JSON' > audit-allowlist.json
+          {
+            "vulnerabilities": []
+          }
+          JSON
+      - name: Generate CycloneDX SBOM
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const { randomUUID } = require('crypto');
+
+          const packages = new Map();
+
+          const compareVersions = (a, b) => {
+            const normalize = (input) => input.split('-')[0].split('.').map((part) => Number(part) || 0);
+            const av = normalize(a);
+            const bv = normalize(b);
+            const length = Math.max(av.length, bv.length);
+            for (let i = 0; i < length; i++) {
+              const diff = (av[i] ?? 0) - (bv[i] ?? 0);
+              if (diff !== 0) return diff;
+            }
+            return 0;
+          };
+
+          const toPurl = (name, version) => {
+            if (name.startsWith('@')) {
+              const [, scope, pkg] = name.match(/^@([^/]+)\/(.+)$/) ?? [];
+              if (scope && pkg) {
+                return `pkg:npm/%40${scope}/${pkg}@${version}`;
+              }
+            }
+            return `pkg:npm/${name}@${version}`;
+          };
+
+          const recordPackage = (manifestPath) => {
+            try {
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              if (!manifest.name || !manifest.version) {
+                return;
+              }
+              const existing = packages.get(manifest.name);
+              if (!existing || compareVersions(manifest.version, existing.version) > 0) {
+                packages.set(manifest.name, {
+                  bomRef: manifest.name,
+                  type: 'library',
+                  name: manifest.name,
+                  version: manifest.version,
+                  purl: toPurl(manifest.name, manifest.version),
+                });
+              }
+            } catch (error) {
+              console.warn(`Skipping manifest at ${manifestPath}:`, error.message);
+            }
+          };
+
+          const addFromNodeModules = (baseDir) => {
+            const modulesDir = path.join(baseDir, 'node_modules');
+            if (!fs.existsSync(modulesDir)) return;
+            for (const entry of fs.readdirSync(modulesDir)) {
+              if (entry.startsWith('.')) continue;
+              const entryPath = path.join(modulesDir, entry);
+              if (entry.startsWith('@')) {
+                for (const scoped of fs.readdirSync(entryPath)) {
+                  recordPackage(path.join(entryPath, scoped, 'package.json'));
+                }
+              } else {
+                recordPackage(path.join(entryPath, 'package.json'));
+              }
+            }
+          };
+
+          const root = process.cwd();
+          const queue = [root];
+          const candidateDirs = ['services', 'webapp', 'worker', 'shared'];
+          for (const dir of candidateDirs) {
+            const base = path.join(root, dir);
+            if (!fs.existsSync(base)) continue;
+            for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
+              if (entry.isDirectory()) {
+                queue.push(path.join(base, entry.name));
+              }
+            }
+          }
+
+          for (const dir of queue) {
+            addFromNodeModules(dir);
+          }
+
+          if (packages.size === 0) {
+            console.warn('No packages detected while generating SBOM.');
+          }
+
+          const components = Array.from(packages.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+          const sbom = {
+            bomFormat: 'CycloneDX',
+            specVersion: '1.5',
+            serialNumber: `urn:uuid:${randomUUID()}`,
+            version: 1,
+            metadata: {
+              timestamp: new Date().toISOString(),
+              tools: [
+                {
+                  vendor: 'internal',
+                  name: 'local-offline-sbom-generator',
+                  version: '1.0.0',
+                },
+              ],
+            },
+            components,
+          };
+
+          fs.writeFileSync('sbom.json', JSON.stringify(sbom, null, 2));
+          NODE
+      - name: Generate SCA report
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const semverCompare = (a, b) => {
+            const normalize = (input) => input.split('-')[0].split('.').map((part) => Number(part) || 0);
+            const av = normalize(a);
+            const bv = normalize(b);
+            const length = Math.max(av.length, bv.length);
+            for (let i = 0; i < length; i++) {
+              const diff = (av[i] ?? 0) - (bv[i] ?? 0);
+              if (diff !== 0) return diff;
+            }
+            return 0;
+          };
+
+          const collectPackages = () => {
+            const packages = new Map();
+
+            const record = (manifestPath) => {
+              try {
+                const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+                if (!manifest.name || !manifest.version) return;
+                const existing = packages.get(manifest.name);
+                if (!existing || semverCompare(manifest.version, existing.version) > 0) {
+                  packages.set(manifest.name, { name: manifest.name, version: manifest.version });
+                }
+              } catch (error) {
+                console.warn(`Skipping manifest at ${manifestPath}:`, error.message);
+              }
+            };
+
+            const visitNodeModules = (dir) => {
+              const nm = path.join(dir, 'node_modules');
+              if (!fs.existsSync(nm)) return;
+              for (const entry of fs.readdirSync(nm)) {
+                if (entry.startsWith('.')) continue;
+                const entryPath = path.join(nm, entry);
+                if (entry.startsWith('@')) {
+                  for (const scoped of fs.readdirSync(entryPath)) {
+                    record(path.join(entryPath, scoped, 'package.json'));
+                  }
+                } else {
+                  record(path.join(entryPath, 'package.json'));
+                }
+              }
+            };
+
+            const roots = [process.cwd()];
+            const groups = ['services', 'webapp', 'worker', 'shared'];
+            for (const group of groups) {
+              const base = path.join(process.cwd(), group);
+              if (!fs.existsSync(base)) continue;
+              for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
+                if (entry.isDirectory()) {
+                  roots.push(path.join(base, entry.name));
+                }
+              }
+            }
+
+            for (const dir of roots) {
+              visitNodeModules(dir);
+            }
+
+            return packages;
+          };
+
+          const packages = collectPackages();
+
+          const rules = [
+            {
+              id: 'CVE-2021-23337',
+              package: 'lodash',
+              severity: 'HIGH',
+              description: 'Prototype pollution in lodash < 4.17.21',
+              fixedVersion: '4.17.21',
+              affected: (version) => semverCompare(version, '4.17.21') < 0,
+            },
+            {
+              id: 'CVE-2020-7598',
+              package: 'minimist',
+              severity: 'HIGH',
+              description: 'Prototype pollution in minimist < 1.2.3',
+              fixedVersion: '1.2.3',
+              affected: (version) => semverCompare(version, '1.2.3') < 0,
+            },
+            {
+              id: 'CVE-2021-32804',
+              package: 'normalize-url',
+              severity: 'HIGH',
+              description: 'Normalization issue in normalize-url < 6.0.1',
+              fixedVersion: '6.0.1',
+              affected: (version) => semverCompare(version, '6.0.1') < 0,
+            },
+          ];
+
+          const vulnerabilities = [];
+          for (const rule of rules) {
+            const pkg = packages.get(rule.package);
+            if (!pkg) continue;
+            if (rule.affected(pkg.version)) {
+              vulnerabilities.push({
+                id: rule.id,
+                package: rule.package,
+                severity: rule.severity,
+                installedVersion: pkg.version,
+                fixedVersion: rule.fixedVersion,
+                description: rule.description,
+              });
+            }
+          }
+
+          const report = {
+            generatedAt: new Date().toISOString(),
+            tool: 'local-offline-sca',
+            vulnerabilities,
+          };
+
+          fs.writeFileSync('sca.json', JSON.stringify(report, null, 2));
+          NODE
+      - name: Enforce vulnerability policy
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const allowlistPath = 'audit-allowlist.json';
+          const scaPath = 'sca.json';
+
+          const allowlist = fs.existsSync(allowlistPath)
+            ? JSON.parse(fs.readFileSync(allowlistPath, 'utf8'))
+            : { vulnerabilities: [] };
+          const report = fs.existsSync(scaPath)
+            ? JSON.parse(fs.readFileSync(scaPath, 'utf8'))
+            : { vulnerabilities: [] };
+
+          const allowed = new Set((allowlist.vulnerabilities ?? []).map(String));
+          const blocking = (report.vulnerabilities ?? []).filter((item) => {
+            const severity = String(item.severity ?? '').toUpperCase();
+            return (severity === 'HIGH' || severity === 'CRITICAL') && !allowed.has(item.id);
+          });
+
+          if (blocking.length > 0) {
+            console.error('Blocking vulnerabilities detected:', JSON.stringify(blocking, null, 2));
+            process.exit(1);
+          }
+
+          console.log('No unallowlisted high severity vulnerabilities detected.');
+          NODE
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+      - name: Upload SCA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca
+          path: sca.json
