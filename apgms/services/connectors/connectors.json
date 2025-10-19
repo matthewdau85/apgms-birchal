@@ -1,0 +1,17 @@
+[
+  {
+    "id": "pos",
+    "vendor": "Square",
+    "product": "Point of Sale"
+  },
+  {
+    "id": "payroll",
+    "vendor": "Gusto",
+    "product": "Payroll"
+  },
+  {
+    "id": "accounting",
+    "vendor": "Intuit",
+    "product": "QuickBooks Online"
+  }
+]

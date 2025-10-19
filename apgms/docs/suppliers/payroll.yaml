@@ -1,0 +1,14 @@
+vendor: "Gusto, Inc."
+data_categories:
+  - "Employee compensation records"
+  - "Tax withholding details"
+  - "Bank account routing info"
+auth: "SAML SSO with SCIM provisioned service account"
+storage: "Encrypted vault-backed secrets for API credentials; payroll exports stored in segregated payroll schema with restricted RBAC."
+risks:
+  - "Disclosure of PII and salary data"
+  - "Unintended payroll actions via API"
+mitigations:
+  - "Read-only integration scope with monitoring"
+  - "PII redaction pipeline before analytics processing"
+status: "approved"
