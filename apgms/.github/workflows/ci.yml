@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,24 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+
+  compliance-pack:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure artifacts directory
+        run: |
+          mkdir -p artifacts
+          if [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
+            echo "No artifacts generated; inserting placeholder manifest." > artifacts/README.txt
+          fi
+      - name: Create compliance bundle
+        run: |
+          cd artifacts
+          zip -r compliance.zip .
+      - name: Upload compliance bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-pack
+          path: artifacts/compliance.zip
