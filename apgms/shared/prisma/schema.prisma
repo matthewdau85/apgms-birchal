@@ -1,36 +1,86 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+/// @class("FIN")
 model Org {
   id        String   @id @default(cuid())
+  /// @class("FIN")
   name      String
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
 }
 
+/// @class("PII")
 model User {
   id        String   @id @default(cuid())
+  /// @class("PII")
   email     String   @unique
+  /// @class("PII")
   password  String
   createdAt DateTime @default(now())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  /// @class("FIN")
   orgId     String
 }
 
+/// @class("FIN")
 model BankLine {
   id        String   @id @default(cuid())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  /// @class("FIN")
   orgId     String
+  /// @class("FIN")
   date      DateTime
+  /// @class("FIN")
   amount    Decimal
+  /// @class("PII", "FIN")
   payee     String
+  /// @class("FIN")
   desc      String
+  createdAt DateTime @default(now())
+}
+
+/// @class("PII")
+model AuditLog {
+  id        String   @id @default(cuid())
+  /// @class("PII")
+  actorEmail String
+  action    String
+  /// @class("PII")
+  subjectId String?
+  /// @class("PII")
+  payload   Json?
+  createdAt DateTime @default(now())
+}
+
+/// @class("FIN")
+model BlobObject {
+  id        String   @id @default(cuid())
+  /// @class("FIN")
+  bucket    String
+  /// @class("FIN")
+  key       String
+  /// @class("FIN")
+  checksum  String?
+  createdAt DateTime @default(now())
+}
+
+/// @class("PII")
+model AppLog {
+  id        String   @id @default(cuid())
+  /// @class("PII")
+  level     String
+  /// @class("PII")
+  message   String
+  /// @class("PII")
+  context   Json?
   createdAt DateTime @default(now())
 }
