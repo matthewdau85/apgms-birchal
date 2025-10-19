@@ -13,6 +13,8 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  deletedAt DateTime?
+  piiRedactedAt DateTime?
 }
 
 model User {

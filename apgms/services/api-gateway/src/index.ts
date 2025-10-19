@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -10,10 +10,20 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { registerAdminPrivacyRoutes } from "./routes/admin-privacy";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+
+const privacyExportDir =
+  process.env.PRIVACY_EXPORT_DIR ?? path.resolve(__dirname, "../exports");
+
+registerAdminPrivacyRoutes(app, {
+  prisma,
+  adminToken: process.env.ADMIN_API_TOKEN,
+  exportDir: privacyExportDir,
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -77,4 +87,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
