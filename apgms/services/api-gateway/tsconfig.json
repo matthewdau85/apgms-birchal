@@ -6,11 +6,12 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
       "@apgms/shared/*": ["shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }
