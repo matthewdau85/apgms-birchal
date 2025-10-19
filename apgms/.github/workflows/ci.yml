@@ -15,3 +15,11 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - run: pnpm sbr:selftest
+      - name: Upload SBR self-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbr-selftest-evidence
+          path: artifacts/evidence/
+          if-no-files-found: error
