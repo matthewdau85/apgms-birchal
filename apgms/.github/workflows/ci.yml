@@ -15,3 +15,27 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  a11y:
+    name: Accessibility
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: pnpm exec playwright install --with-deps
+      - name: Run accessibility checks
+        run: pnpm exec playwright test webapp/tests/a11y.spec.ts --config=playwright.config.ts
+      - name: Upload accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-report
+          path: |
+            a11y-report.json
