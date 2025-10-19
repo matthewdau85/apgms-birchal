@@ -1,36 +1,47 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
   users     User[]
   lines     BankLine[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  email     String?   @unique
+  password  String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  org       Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  org       Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
   date      DateTime
   amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  payee     String?
+  desc      String?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+}
+
+model AuditBlob {
+  id         String   @id @default(cuid())
+  event      String
+  payload    Json
+  createdAt  DateTime @default(now())
+  redactedAt DateTime?
 }
