@@ -1,19 +1,21 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import authPlugin from './plugins/auth';
+import { orgScopeHook } from './hooks/org-scope';
+import { prisma } from "../../../shared/src/db";
 
 // Load repo-root .env from src/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
-
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(authPlugin);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -65,6 +67,27 @@ app.post("/bank-lines", async (req, rep) => {
   }
 });
 
+app.register(async function (instance, _opts, done) {
+  // Require JWT on all /v1 routes
+  instance.addHook('preHandler', instance.authenticate);
+  // Enforce org scope
+  instance.addHook('preHandler', orgScopeHook);
+
+  // Minimal protected route for verification
+  instance.get('/v1/ping', async (req, reply) => {
+    // @ts-ignore
+    const user = req.user;
+    reply.send({ ok: true, user });
+  });
+
+  // Example org-scoped route for tests
+  instance.get('/v1/orgs/:orgId/resource', async (req, reply) => {
+    reply.send({ ok: true });
+  });
+
+  done();
+});
+
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
   app.log.info(app.printRoutes());
@@ -77,4 +100,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
