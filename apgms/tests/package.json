@@ -1,0 +1,19 @@
+{
+  "name": "@apgms/tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@apgms/api-gateway": "workspace:*",
+    "@apgms/shared": "workspace:*",
+    "fast-check": "^3.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.3"
+  }
+}

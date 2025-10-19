@@ -2,6 +2,7 @@ packages:
   - services/*
   - webapp
   - shared
+  - tests
   - worker
 
 ignoredBuiltDependencies:
