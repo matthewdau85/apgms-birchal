@@ -10,8 +10,19 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import authPlugin from "./plugins/auth";
+import { orgScopeHook } from "./hooks/org-scope";
 
 const app = Fastify({ logger: true });
+
+await app.register(authPlugin);
+app.register(async function (instance, _opts, done) {
+  instance.addHook("preHandler", instance.authenticate);
+  instance.addHook("preHandler", orgScopeHook);
+  instance.get("/v1/ping", async (_req, reply) => reply.send({ ok: true }));
+  instance.get("/v1/orgs/:orgId/resource", async (_req, reply) => reply.send({ ok: true }));
+  done();
+});
 
 await app.register(cors, { origin: true });
 
