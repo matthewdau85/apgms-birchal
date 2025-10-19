@@ -11,8 +11,10 @@ model Org {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
+  deletedAt DateTime?
   users     User[]
   lines     BankLine[]
+  tombstones OrgTombstone[]
 }
 
 model User {
@@ -35,11 +37,10 @@ model BankLine {
   createdAt DateTime @default(now())
 }
 
-model AccessLog {
-  id           String   @id @default(cuid())
-  event        String
-  orgId        String
-  principalId  String
-  subjectEmail String
-  createdAt    DateTime @default(now())
+model OrgTombstone {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  payload   Json
+  createdAt DateTime @default(now())
 }
