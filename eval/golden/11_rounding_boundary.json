@@ -1,0 +1,14 @@
+{
+  "name": "rounding_boundary",
+  "input": {
+    "currency": "AUD",
+    "scale": 2,
+    "amounts": ["0.005", "0.004", "-0.005"]
+  },
+  "expected": {
+    "schema_valid": true,
+    "rule_pass": true,
+    "rounded": ["0.01", "0.00", "-0.01"],
+    "total": "0.00"
+  }
+}
