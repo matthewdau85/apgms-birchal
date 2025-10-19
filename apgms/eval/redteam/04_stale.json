@@ -1,0 +1,23 @@
+[
+  {
+    "name": "stale-timestamp",
+    "description": "Submit a webhook with an expired timestamp to bypass nonce protections.",
+    "request": {
+      "method": "POST",
+      "path": "/webhooks",
+      "headers": {
+        "Idempotency-Key": "stale-key",
+        "X-Nonce": "nonce-expired",
+        "X-Timestamp": "1500000000000",
+        "X-Signature": "deadbeef"
+      },
+      "body": {
+        "action": "import_transactions"
+      }
+    },
+    "expected": {
+      "status": 400,
+      "error": "stale_timestamp"
+    }
+  }
+]

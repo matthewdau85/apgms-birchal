@@ -1,0 +1,23 @@
+[
+  {
+    "name": "tool-abuse-replay",
+    "description": "Reuse an Idempotency-Key to coerce the gateway into replaying a webhook side effect.",
+    "request": {
+      "method": "POST",
+      "path": "/webhooks",
+      "headers": {
+        "Idempotency-Key": "fixed-key",
+        "X-Nonce": "nonce-123",
+        "X-Timestamp": "1690000000000",
+        "X-Signature": "deadbeef"
+      },
+      "body": {
+        "action": "trigger_payout"
+      }
+    },
+    "expected": {
+      "status": 409,
+      "error": "replay_detected"
+    }
+  }
+]
