@@ -1,7 +1,15 @@
-﻿node_modules/
+node_modules/
 dist/
 coverage/
 .env*
 .DS_Store
 .vscode/
 **/__pycache__/
+!services/
+!services/api-gateway/
+!services/api-gateway/node_modules/
+services/api-gateway/node_modules/*
+!services/api-gateway/node_modules/fastify-plugin/
+!services/api-gateway/node_modules/fastify-plugin/**
+!services/api-gateway/node_modules/prom-client/
+!services/api-gateway/node_modules/prom-client/**
