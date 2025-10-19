@@ -14,4 +14,21 @@ jobs:
           cache: 'pnpm'
       - run: pnpm i
       - run: pnpm -r build
-      - run: pnpm -r test
+  tests:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: npm run ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: junit-results
+          path: artifacts/test-results.xml
