@@ -10,7 +10,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared": ["shared/src/index.ts"],
+      "@apgms/shared/*": ["packages/shared/src/*", "shared/src/*"]
     }
   }
 }
