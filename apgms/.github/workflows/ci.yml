@@ -12,6 +12,11 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm test
+      - name: Upload MFA documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-mfa-docs
+          path: docs/security/MFA.md
