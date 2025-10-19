@@ -12,6 +12,35 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run SCA gate
+        run: pnpm run sca:check
+      - name: Build packages
+        run: pnpm -r build
+      - name: Run tests
+        run: pnpm -r test
+      - name: Generate CycloneDX SBOM
+        run: pnpm run sbom
+      - name: Upload CycloneDX SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclonedx-sbom
+          path: artifacts/cyclonedx-sbom.json
+      - name: Build API gateway image
+        run: docker build -f services/api-gateway/Dockerfile -t apgms-api-gateway:ci .
+      - name: Run API gateway container
+        run: docker run -d --rm --name api-gateway -p 3000:3000 -e DATABASE_URL=postgresql://user:pass@localhost:5432/db apgms-api-gateway:ci
+      - name: Check container readiness
+        run: |
+          for attempt in {1..10}; do
+            if curl -fsS http://127.0.0.1:3000/readyz; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker logs api-gateway || true
+          exit 1
+      - name: Stop API gateway container
+        if: always()
+        run: docker rm -f api-gateway || true
