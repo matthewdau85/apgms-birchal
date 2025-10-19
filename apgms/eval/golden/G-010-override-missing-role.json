@@ -1,0 +1,27 @@
+{
+  "id": "G-010",
+  "name": "Override missing role",
+  "description": "Override requested without specifying an accountable reviewer role.",
+  "input": {
+    "orgId": "org-1010",
+    "bankLineId": "line-2010",
+    "rptId": "rpt-3010",
+    "policyId": "policy-override-01",
+    "gateId": "gate-escalation-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-aaaaaaaaaaaa",
+    "gate": "OPEN",
+    "memo": "Requesting emergency release for operations vendor.",
+    "amount": 42000,
+    "currency": "AUD",
+    "override": {
+      "requested": true,
+      "role": null
+    },
+    "documents": ["operations-request.pdf"]
+  },
+  "expected": {
+    "decision": "REJECTED",
+    "reason": "override_role_required",
+    "memoRequired": true
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "G-002",
+  "name": "Bulk payment with memo",
+  "description": "Large disbursement that requires memo documentation and satisfies memo requirement.",
+  "input": {
+    "orgId": "org-1002",
+    "bankLineId": "line-2002",
+    "rptId": "rpt-3002",
+    "policyId": "policy-core-01",
+    "gateId": "gate-onboard-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-222222222222",
+    "gate": "OPEN",
+    "memo": "Budgeted Q1 capital expenditure for automation upgrade.",
+    "amount": 60000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["capex-approval.pdf", "invoice-20455.pdf", "board-minutes.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "approved",
+    "memoRequired": true
+  }
+}

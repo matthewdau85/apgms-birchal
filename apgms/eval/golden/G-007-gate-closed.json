@@ -1,0 +1,27 @@
+{
+  "id": "G-007",
+  "name": "Gate closed due to audit hold",
+  "description": "Gate is explicitly closed while audit remediation is outstanding.",
+  "input": {
+    "orgId": "org-1007",
+    "bankLineId": "line-2007",
+    "rptId": "rpt-3007",
+    "policyId": "policy-core-01",
+    "gateId": "gate-audit-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-777777777777",
+    "gate": "CLOSED",
+    "memo": "",
+    "amount": 15000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["audit-hold.pdf"]
+  },
+  "expected": {
+    "decision": "REJECTED",
+    "reason": "gate_closed",
+    "memoRequired": false
+  }
+}

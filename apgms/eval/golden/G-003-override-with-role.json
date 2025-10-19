@@ -1,0 +1,27 @@
+{
+  "id": "G-003",
+  "name": "Override escalation with treasury reviewer",
+  "description": "Override requested for expedited settlement with appropriate treasury role assigned and memo captured.",
+  "input": {
+    "orgId": "org-1003",
+    "bankLineId": "line-2003",
+    "rptId": "rpt-3003",
+    "policyId": "policy-override-01",
+    "gateId": "gate-escalation-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-333333333333",
+    "gate": "OPEN",
+    "memo": "Treasury override approved due to supplier COD requirement.",
+    "amount": 40000,
+    "currency": "AUD",
+    "override": {
+      "requested": true,
+      "role": "TREASURY_MANAGER"
+    },
+    "documents": ["treasury-approval.eml", "supplier-statement.pdf"]
+  },
+  "expected": {
+    "decision": "APPROVED",
+    "reason": "override_review",
+    "memoRequired": true
+  }
+}

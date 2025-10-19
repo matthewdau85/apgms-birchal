@@ -1,0 +1,27 @@
+{
+  "id": "G-008",
+  "name": "Memo missing on high value drawdown",
+  "description": "High value drawdown without the required explanatory memo.",
+  "input": {
+    "orgId": "org-1008",
+    "bankLineId": "line-2008",
+    "rptId": "rpt-3008",
+    "policyId": "policy-core-01",
+    "gateId": "gate-drawdown-01",
+    "idempotencyKey": "0a1f4b32-0b5f-4d88-9d88-888888888888",
+    "gate": "OPEN",
+    "memo": "   ",
+    "amount": 90000,
+    "currency": "AUD",
+    "override": {
+      "requested": false,
+      "role": null
+    },
+    "documents": ["drawdown-request.pdf"]
+  },
+  "expected": {
+    "decision": "REJECTED",
+    "reason": "memo_required",
+    "memoRequired": true
+  }
+}
