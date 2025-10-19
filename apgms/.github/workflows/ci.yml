@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,12 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - run: pnpm otel:sample
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otel-run
+          path: evidence/otel-run.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otel-summary
+          path: evidence/otel-summary.json
