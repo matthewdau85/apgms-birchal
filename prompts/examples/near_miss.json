@@ -1,0 +1,12 @@
+{
+  "input": {
+    "query": "What user data handling commitments are documented in the privacy policy draft?"
+  },
+  "output": {
+    "answer": "The privacy policy draft only contains a heading without substantive content, so no explicit user data handling commitments are documented yet.【F:apgms/docs/legal/Privacy-Policy-draft.md†L1-L1】",
+    "citations": [
+      "【F:apgms/docs/legal/Privacy-Policy-draft.md†L1-L1】"
+    ],
+    "confidence": 0.2
+  }
+}
