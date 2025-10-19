@@ -1,0 +1,20 @@
+{
+  "name": "webhook-stale-timestamp",
+  "request": {
+    "method": "POST",
+    "url": "/webhooks/payto",
+    "headers": {
+      "X-Nonce": "redteam-stale",
+      "X-Timestamp": "{{past_timestamp}}",
+      "X-Signature": "{{signature}}"
+    },
+    "body": {
+      "id": "rt-stale",
+      "amount": 55
+    }
+  },
+  "expect": {
+    "status": 409,
+    "body": { "error": "stale_timestamp" }
+  }
+}

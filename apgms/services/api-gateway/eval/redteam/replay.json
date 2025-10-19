@@ -1,0 +1,21 @@
+{
+  "name": "webhook-replay",
+  "request": {
+    "method": "POST",
+    "url": "/webhooks/payto",
+    "headers": {
+      "X-Nonce": "redteam-nonce",
+      "X-Timestamp": "{{timestamp}}",
+      "X-Signature": "{{signature}}"
+    },
+    "body": {
+      "id": "rt-replay",
+      "amount": 100
+    }
+  },
+  "replay": true,
+  "expect": {
+    "status": 409,
+    "body": { "error": "replayed_nonce" }
+  }
+}
