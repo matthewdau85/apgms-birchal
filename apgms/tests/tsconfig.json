@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "types": ["vitest/globals"],
+    "baseUrl": "."
+  },
+  "include": ["tests/**/*.ts"]
+}
