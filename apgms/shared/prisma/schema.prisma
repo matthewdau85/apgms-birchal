@@ -34,3 +34,20 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model RptToken {
+  id         String   @id @default(cuid())
+  rptId      String
+  bankLineId String
+  orgId      String
+  payload    Json
+  signature  String
+  prevHash   String?
+  hash       String
+  publicKey  String
+  createdAt  DateTime @default(now())
+
+  @@index([rptId])
+  @@index([bankLineId])
+  @@index([orgId])
+}
