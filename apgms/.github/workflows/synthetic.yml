@@ -1,0 +1,29 @@
+name: Nightly Gateway Synthetic
+
+on:
+  schedule:
+    - cron: '30 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  synthetic-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run synthetic monitor
+        env:
+          BASE_URL: ${{ secrets.SYNTHETIC_BASE_URL }}
+          AUTH_HEADER: ${{ secrets.SYNTHETIC_AUTH_HEADER }}
+        run: |
+          chmod +x scripts/synthetic.sh
+          ./scripts/synthetic.sh "${BASE_URL}" "${AUTH_HEADER}"
+
+      - name: Upload synthetic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-synthetic-logs
+          path: artifacts/
+          if-no-files-found: error
