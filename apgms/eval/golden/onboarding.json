@@ -1,0 +1,7 @@
+{
+  "id": "onboarding",
+  "prompt": "onboarding request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "HTTP GET",
+    "method": "GET",
+    "route": "/healthz",
+    "start": 1760870143710,
+    "statusCode": 200,
+    "durationMs": 3
+  }
+]

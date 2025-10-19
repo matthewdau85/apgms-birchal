@@ -1,0 +1,7 @@
+{
+  "id": "ledger_report",
+  "prompt": "ledger_report request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

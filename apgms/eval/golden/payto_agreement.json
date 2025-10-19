@@ -1,0 +1,7 @@
+{
+  "id": "payto_agreement",
+  "prompt": "payto_agreement request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

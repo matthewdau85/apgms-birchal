@@ -1,0 +1,7 @@
+{
+  "id": "audit_log",
+  "prompt": "audit_log request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

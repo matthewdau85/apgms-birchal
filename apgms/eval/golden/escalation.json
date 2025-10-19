@@ -1,0 +1,7 @@
+{
+  "id": "escalation",
+  "prompt": "escalation request",
+  "expected_response": {
+    "status": "ok"
+  }
+}

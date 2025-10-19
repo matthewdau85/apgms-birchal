@@ -1,0 +1,12 @@
+{
+  "name": "@apgms/payments",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./adapters/payto.mock": "./src/adapters/payto.mock.ts"
+  },
+  "dependencies": {
+    "@apgms/shared": "workspace:*"
+  }
+}

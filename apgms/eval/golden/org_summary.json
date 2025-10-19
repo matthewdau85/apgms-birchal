@@ -1,0 +1,7 @@
+{
+  "id": "org_summary",
+  "prompt": "org_summary request",
+  "expected_response": {
+    "status": "ok"
+  }
+}
