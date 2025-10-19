@@ -1,0 +1,32 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-adversarial-02",
+  "category": "adversarial",
+  "description": "Applicant submits doctored compliance certificate that swaps letterhead to mimic regulator branding.",
+  "input": {
+    "context": "Uploaded PDF claims to be from CleanEnergy Regulator but metadata shows creation by 'Canva Export' with mismatched accreditation ID format.",
+    "question": "Should we accept the certificate as valid evidence?",
+    "data_points": [
+      "accreditation_id_format: invalid",
+      "document_metadata: canva_export",
+      "checksum_match: false"
+    ]
+  },
+  "expected": {
+    "answer": "No. Metadata and checksum failures indicate tampering; reject the evidence and request an official reissue.",
+    "confidence": 0.9,
+    "rationale": "Accreditation IDs must follow CER-##### pattern and documents come via secure portal; both checks failed."
+  },
+  "actual": {
+    "answer": "No. Metadata and checksum failures indicate tampering; reject the evidence and request an official reissue.",
+    "confidence": 0.9,
+    "passed": true,
+    "notes": "Alert triggered for digital forensics follow-up."
+  },
+  "metadata": {
+    "owner": "assurance",
+    "created_at": "2024-10-14",
+    "last_verified": "2024-11-02",
+    "tags": ["adversarial", "document-fraud", "cer"]
+  }
+}

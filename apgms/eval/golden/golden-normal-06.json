@@ -1,0 +1,32 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-06",
+  "category": "normal",
+  "description": "Validate risk downgrade after three consecutive clean monitoring cycles.",
+  "input": {
+    "context": "Client Delta Analytics completed three quarterly monitoring reviews with no incidents, stable governance score 82, and timely reporting.",
+    "question": "Can the risk tier move from medium to low?",
+    "data_points": [
+      "monitoring_cycles_clear: 3",
+      "governance_score: 82",
+      "late_reports: 0"
+    ]
+  },
+  "expected": {
+    "answer": "Downgrade to low risk because the client satisfied the three-cycle clean history requirement.",
+    "confidence": 0.9,
+    "rationale": "Policy 6.4 allows automatic downgrade after three clear reviews and governance score above 75."
+  },
+  "actual": {
+    "answer": "Downgrade to low risk because the client satisfied the three-cycle clean history requirement.",
+    "confidence": 0.9,
+    "passed": true,
+    "notes": "Triggered on 2024 Q3 monitoring summary."
+  },
+  "metadata": {
+    "owner": "risk-intelligence",
+    "created_at": "2024-04-29",
+    "last_verified": "2024-11-03",
+    "tags": ["risk", "monitoring", "policy-6.4"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-03",
+  "category": "normal",
+  "description": "Assess payment schedule recommendation for a low-risk milestone plan.",
+  "input": {
+    "context": "Project Milestone Plan A delivers four evenly spaced deliverables over twelve months with each milestone pre-approved by procurement.",
+    "question": "Should the disbursement schedule remain quarterly?",
+    "data_points": [
+      "milestones: 4",
+      "procurement_signoff: true",
+      "risk_score: 18"
+    ]
+  },
+  "expected": {
+    "answer": "Maintain the quarterly disbursement schedule because the risk score is low and milestones align with funding policy.",
+    "confidence": 0.9,
+    "rationale": "Score 18 is well below the 35 threshold requiring adjustment."
+  },
+  "actual": {
+    "answer": "Maintain the quarterly disbursement schedule because the risk score is low and milestones align with funding policy.",
+    "confidence": 0.9,
+    "passed": true
+  },
+  "metadata": {
+    "owner": "funding-ops",
+    "created_at": "2024-09-02",
+    "last_verified": "2024-11-01",
+    "tags": ["payments", "schedule", "risk-low"]
+  }
+}

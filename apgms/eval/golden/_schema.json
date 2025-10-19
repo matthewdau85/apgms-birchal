@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apgms.dev/eval/golden/_schema.json",
+  "title": "Golden evaluation case schema",
+  "$ref": "../../prompts/schema.json"
+}

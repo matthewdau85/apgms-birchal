@@ -1,0 +1,31 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-04",
+  "category": "normal",
+  "description": "Routine AML screening with negative watchlist results.",
+  "input": {
+    "context": "Sanctions screening for principal shareholder returned no matches across AUSTRAC, DFAT, or Interpol watchlists as of the latest sync.",
+    "question": "Can the AML status be set to clear?",
+    "data_points": [
+      "sanctions_hits: 0",
+      "pep_score: 7"
+    ]
+  },
+  "expected": {
+    "answer": "Yes. No watchlist matches or elevated PEP score exist, so AML status is clear.",
+    "confidence": 0.93,
+    "rationale": "Screening run 2024-10-31 returned zero hits with corroborated identity data."
+  },
+  "actual": {
+    "answer": "Yes. No watchlist matches or elevated PEP score exist, so AML status is clear.",
+    "confidence": 0.93,
+    "passed": true,
+    "notes": "PEP score under 10 is classed low risk per policy."
+  },
+  "metadata": {
+    "owner": "aml-ops",
+    "created_at": "2024-06-24",
+    "last_verified": "2024-11-02",
+    "tags": ["aml", "sanctions", "screening"]
+  }
+}
