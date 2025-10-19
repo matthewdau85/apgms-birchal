@@ -5,3 +5,4 @@ coverage/
 .DS_Store
 .vscode/
 **/__pycache__/
+eval/redteam-report.json
