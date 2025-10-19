@@ -3,15 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": "./src/index.ts",
   "scripts": {
     "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
-    "build": "echo building shared"
+    "build": "echo building shared",
+    "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@prisma/client": "6.17.1"
+    "@prisma/client": "6.17.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.4",
     "prisma": "6.17.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.4"
   }
 }
