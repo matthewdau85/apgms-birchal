@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "sbom": "npx @cyclonedx/cyclonedx-npm --output-format json --output-file artifacts/sbom.json",
+    "sca": "npm audit --json > artifacts/sca.json || true"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",

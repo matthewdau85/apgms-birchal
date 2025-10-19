@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  security-artifacts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install workspace dependencies
+        run: npm install
+
+      - name: Prepare artifact directory
+        run: mkdir -p services/api-gateway/artifacts
+
+      - name: Generate CycloneDX SBOM
+        run: npm run sbom --prefix services/api-gateway
+
+      - name: Run npm audit SCA
+        run: npm run sca --prefix services/api-gateway
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-gateway-sbom
+          path: services/api-gateway/artifacts/sbom.json
+
+      - name: Upload SCA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-gateway-sca
+          path: services/api-gateway/artifacts/sca.json
