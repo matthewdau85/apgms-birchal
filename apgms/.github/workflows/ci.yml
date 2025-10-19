@@ -15,3 +15,10 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - name: Upload OTEL traces
+        if: ${{ hashFiles('**/otel-traces.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: otel-traces
+          path: '**/otel-traces.json'
+          if-no-files-found: ignore
