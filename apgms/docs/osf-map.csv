@@ -1,0 +1,5 @@
+control_id,description,status,evidence_link
+OSF-DS-1,Ensure data sources are accessed through authenticated service accounts,PASS,infra/terraform
+OSF-APP-2,Maintain centralized configuration management for runtime secrets,PASS,infra/helm
+OSF-LOG-3,Generate operational audit events for settlement processing,NA,services/audit/src/index.ts
+OSF-OPS-4,Enforce CI checks to guardrail security control regressions,PASS,.github/workflows/ci.yml
