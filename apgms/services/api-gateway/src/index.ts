@@ -11,6 +11,11 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+if (process.env.OTEL_ENABLED === "true") {
+  const { startOtel } = await import("./observability/otel.js");
+  await startOtel();
+}
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
