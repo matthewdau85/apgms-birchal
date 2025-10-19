@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"],
-    "baseUrl": "../../",
-    "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
-    }
+    "rootDir": "src",
+    "outDir": "dist",
+    "baseUrl": "./"
   },
   "include": ["src"]
 }
