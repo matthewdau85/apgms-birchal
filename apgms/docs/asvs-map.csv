@@ -1,0 +1,5 @@
+control_id,description,status,evidence_link
+ASVS-1.2.2,Verify secrets and credentials are only loaded from secure environment configuration,PASS,services/api-gateway/src/index.ts
+ASVS-3.2.1,Verify the application uses parameterized queries or ORM protections for database access,PASS,services/api-gateway/src/index.ts
+ASVS-4.3.3,Verify API responses return generic error information without leaking stack traces,PASS,services/api-gateway/src/index.ts
+ASVS-9.1.1,Verify security events are logged to an append-only audit store,NA,services/audit/src/index.ts

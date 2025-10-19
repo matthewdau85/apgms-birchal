@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
@@ -15,3 +15,24 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  controls-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm install
+      - name: Lint control mappings
+        run: pnpm exec tsx scripts/lint-controls.ts
+      - name: Upload control map artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: control-maps
+          path: |
+            docs/asvs-map.csv
+            docs/osf-map.csv
