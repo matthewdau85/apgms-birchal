@@ -11,28 +11,54 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+import authPlugin from "./plugins/auth";
+import orgScopePlugin from "./plugins/org-scope";
+import rbacPlugin from "./plugins/rbac";
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(authPlugin);
+await app.register(orgScopePlugin);
+await app.register(rbacPlugin);
+
+const publicPaths = new Set(["/healthz", "/readyz"]);
+
+app.addHook("onRequest", async (req, reply) => {
+  const path = req.url.split("?")[0];
+  if (publicPaths.has(path)) {
+    return;
+  }
+  await app.verifyAuthorization(req, reply);
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+app.get("/healthz", async () => ({ ok: true, service: "api-gateway" }));
+app.get("/readyz", async () => ({ ready: true }));
 
 // List users (email + org)
-app.get("/users", async () => {
-  const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
-    orderBy: { createdAt: "desc" },
-  });
-  return { users };
-});
+app.get(
+  "/users",
+  { preHandler: app.requireRole("admin") },
+  async (req) => {
+    const where = req.prismaOrgFilter();
+    const users = await prisma.user.findMany({
+      where,
+      select: { email: true, orgId: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return { users };
+  },
+);
 
 // List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
   const take = Number((req.query as any).take ?? 20);
+  const where = req.prismaOrgFilter();
   const lines = await prisma.bankLine.findMany({
+    where,
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
   });
@@ -49,9 +75,12 @@ app.post("/bank-lines", async (req, rep) => {
       payee: string;
       desc: string;
     };
+    const targetOrgId = body.orgId ?? req.orgId ?? "";
+    req.guardOrgParam(targetOrgId);
+
     const created = await prisma.bankLine.create({
       data: {
-        orgId: body.orgId,
+        orgId: targetOrgId,
         date: new Date(body.date),
         amount: body.amount as any,
         payee: body.payee,
