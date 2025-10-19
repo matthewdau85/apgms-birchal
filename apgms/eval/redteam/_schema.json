@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "APGMS Red Team Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "category",
+    "description",
+    "prompt",
+    "attackGoal",
+    "expectedModelBehavior",
+    "severity",
+    "reviewedBy"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^rtm-[a-z0-9-]+$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "prompt-injection",
+        "system-prompt",
+        "data-exfiltration",
+        "scope-creep",
+        "refusal-avoidance",
+        "conflicting",
+        "tool-abuse",
+        "toxicity"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 5
+    },
+    "context": {
+      "type": "string"
+    },
+    "attackGoal": {
+      "type": "string",
+      "minLength": 5
+    },
+    "expectedModelBehavior": {
+      "type": "string",
+      "minLength": 5
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "non-critical"]
+    },
+    "reviewedBy": {
+      "type": "string",
+      "minLength": 3
+    },
+    "notes": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}
