@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -13,6 +14,7 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  gates     Gate[]
 }
 
 model User {
@@ -33,4 +35,27 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+model AuditBlob {
+  id          String   @id @default(cuid())
+  kind        String
+  payloadJson Json
+  orgId       String?
+  gateId      String?
+  createdAt   DateTime @default(now())
+}
+
+model Gate {
+  id        String    @id @default(cuid())
+  org       Org       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  state     GateState @default(CLOSED)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum GateState {
+  OPEN
+  CLOSED
 }
