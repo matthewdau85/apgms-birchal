@@ -11,9 +11,12 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+import adminKeyRoutes from "./routes/admin/keys";
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(adminKeyRoutes, { prefix: "/admin" });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
