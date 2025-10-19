@@ -34,3 +34,34 @@ model BankLine {
   desc      String
   createdAt DateTime @default(now())
 }
+
+model IdempotencyKey {
+  id           String   @id @default(cuid())
+  key          String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  orgId        String
+  method       String
+  route        String
+  responseCode Int
+  responseBody Json
+  createdAt    DateTime @default(now())
+
+  @@unique([key, userId])
+  @@index([orgId, createdAt])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId    String?
+  orgId     String?
+  action    String
+  target    String?
+  meta      Json
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([action, createdAt])
+}
