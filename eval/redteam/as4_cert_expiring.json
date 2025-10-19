@@ -1,0 +1,37 @@
+{
+  "id": "as4_cert_expiring",
+  "summary": "Warn on near-expiry signing certificate and reject production delivery.",
+  "profile": "AS4",
+  "category": "certificate",
+  "input": {
+    "mode": "production",
+    "messageId": "urn:uuid:6b5ef9f7-5a9f-46ea-95d3-e86d0b48d4a1",
+    "headers": {
+      "AS4-To": "urn:ato:apgms:prod",
+      "AS4-From": "urn:ato:redteam",
+      "AS4-MessageType": "UserMessage"
+    },
+    "security": {
+      "signature": {
+        "kid": "urn:ato:signing:prod-expiring",
+        "notBefore": "2024-08-28T23:50:00Z",
+        "notAfter": "2024-08-29T23:55:00Z",
+        "checkedAt": "2024-08-29T23:50:30Z"
+      }
+    }
+  },
+  "expectations": {
+    "logs": [
+      {
+        "level": "WARN",
+        "code": "security.certificate.expiring",
+        "message": "Signing certificate urn:ato:signing:prod-expiring expires on 2024-08-29T23:55:00Z"
+      }
+    ],
+    "delivery": {
+      "mode": "production",
+      "outcome": "reject",
+      "reason": "Reject messages signed with certificates expiring within 10 minutes in production mode."
+    }
+  }
+}
