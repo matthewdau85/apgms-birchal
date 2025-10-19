@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -10,10 +10,28 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import authPlugin from "./plugins/auth";
+import { orgScopeHook } from "./hooks/org-scope";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(authPlugin);
+
+// Apply org-scope to /v1 routes only
+app.register(async function (instance, _opts, done) {
+  instance.addHook("preHandler", instance.authenticate);
+  instance.addHook("preHandler", orgScopeHook);
+
+  // Demo route for tests
+  instance.get("/v1/ping", async (req, reply) => {
+    // @ts-ignore
+    const user = req.user;
+    reply.send({ ok: true, user });
+  });
+
+  done();
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
