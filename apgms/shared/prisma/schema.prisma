@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Org {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  users     User[]
-  lines     BankLine[]
+  id          String       @id @default(cuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  users       User[]
+  lines       BankLine[]
+  sbrMessages SbrMessage[]
 }
 
 model User {
@@ -33,4 +34,17 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+model SbrMessage {
+  id           String   @id @default(cuid())
+  messageId    String   @unique
+  org          Org?     @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  orgId        String?
+  payloadXml   String
+  artifactPath String
+  status       String   @default("submitted")
+  metadata     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
