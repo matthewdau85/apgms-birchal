@@ -1,54 +1,41 @@
-name: CI
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
+﻿name: CI
+on: [push, pull_request]
 jobs:
-  accessibility:
+  build:
     runs-on: ubuntu-latest
-    env:
-      PLAYWRIGHT_TEST_BASE_URL: ${{ vars.PLAYWRIGHT_TEST_BASE_URL }}
-      AXE_SOURCE_URL: ${{ vars.AXE_SOURCE_URL }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm dlx playwright install --with-deps
-
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: pnpm -r build
+      - run: pnpm -r test
+  a11y:
+    name: Accessibility
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - run: pnpm exec playwright install --with-deps
       - name: Run accessibility checks
-        run: pnpm dlx playwright test --config=playwright.config.ts
-
-      - name: Upload accessibility results
+        run: pnpm exec playwright test webapp/tests/a11y.spec.ts --config=playwright.config.ts
+      - name: Upload accessibility report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: accessibility-report
+          name: a11y-report
           path: |
-            playwright-report/
-          if-no-files-found: warn
-
-      - name: Publish accessibility statement
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: accessibility-statement
-          path: docs/accessibility-statement.md
-          if-no-files-found: error
+            a11y-report.json
