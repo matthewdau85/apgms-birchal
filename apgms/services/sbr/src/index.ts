@@ -1,1 +1,1 @@
-﻿console.log('sbr service');
+export * from "./as4.stub";

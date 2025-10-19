@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { sendSbrDocument } from "@apgms/sbr";
 
 const app = Fastify({ logger: true });
 
@@ -62,6 +63,44 @@ app.post("/bank-lines", async (req, rep) => {
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.post("/sbr/send", async (req, rep) => {
+  try {
+    const body = req.body as {
+      orgId?: string;
+      documentType?: string;
+      payload?: unknown;
+      receiver?: string;
+      conversationId?: string;
+    };
+
+    if (!body?.orgId || !body?.documentType || typeof body.payload === "undefined") {
+      return rep.code(400).send({ error: "invalid_request" });
+    }
+
+    const result = await sendSbrDocument({
+      orgId: body.orgId,
+      documentType: body.documentType,
+      payload: body.payload,
+      receiver: body.receiver,
+      conversationId: body.conversationId,
+    });
+
+    return rep.code(202).send({
+      messageId: result.envelope.header.messageId,
+      conversationId: result.envelope.header.conversationId,
+      createdAt: result.envelope.header.createdAt,
+      digest: result.envelope.signature.digest,
+      artifacts: {
+        envelopePath: result.envelopePath,
+        metadataPath: result.metadataPath,
+      },
+    });
+  } catch (error) {
+    req.log.error(error);
+    return rep.code(500).send({ error: "sbr_send_failed" });
   }
 });
 
