@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -9,10 +9,12 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import loggingPlugin from "./plugins/logging";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
+await app.register(loggingPlugin);
 await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
@@ -77,4 +79,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
