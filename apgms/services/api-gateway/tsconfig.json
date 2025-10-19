@@ -9,8 +9,10 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "vitest": ["services/api-gateway/test/vitest-mock"],
+      "supertest": ["services/api-gateway/test/supertest-mock"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test", "types"]
 }
