@@ -1,1 +1,38 @@
-{"name":"@apgms/webapp","version":"0.1.0","private":true,"scripts":{"build":"echo build webapp","test":"echo test webapp"}}
+{
+  "name": "@apgms/webapp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:a11y": "tsx scripts/check-a11y.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.29.2",
+    "@tanstack/react-router": "^1.36.3",
+    "@tanstack/router-memory-history": "^1.36.3",
+    "axios": "^1.6.7",
+    "clsx": "^2.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.9.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.2.1",
+    "@types/axe-core": "^4.7.3",
+    "@types/jsdom": "^21.1.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "axe-core": "^4.8.4",
+    "autoprefixer": "^10.4.16",
+    "jsdom": "^23.0.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2",
+    "vite": "^5.1.4"
+  }
+}
