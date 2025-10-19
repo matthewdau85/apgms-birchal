@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/prompts/schema",
+  "title": "Prompt Output",
+  "type": "object",
+  "description": "Base schema for prompt outputs. Extend as needed.",
+  "additionalProperties": true
+}
