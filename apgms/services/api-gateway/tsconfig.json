@@ -9,8 +9,10 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "ioredis": ["services/api-gateway/src/vendor/ioredis.ts"],
+      "ioredis/*": ["services/api-gateway/src/vendor/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }
