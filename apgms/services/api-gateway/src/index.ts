@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -9,20 +9,40 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { prisma } from "@apgms/shared/src/db";
+import authPlugin from "./plugins/auth";
+import orgScopeHook from "./hooks/org-scope";
+
+type BankLineCreateBody = {
+  date: string;
+  amount: number | string;
+  payee: string;
+  desc: string;
+};
+
+type BankLineQuery = {
+  take?: string;
+};
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(authPlugin);
+await app.register(orgScopeHook);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
-app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+app.get("/health", { config: { public: true } }, async () => ({ ok: true, service: "api-gateway" }));
 
 // List users (email + org)
-app.get("/users", async () => {
+app.get("/users", async (request) => {
+  if (!request.orgId) {
+    throw new Error("Missing organisation context");
+  }
+
   const users = await prisma.user.findMany({
+    where: { orgId: request.orgId },
     select: { email: true, orgId: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
@@ -30,9 +50,14 @@ app.get("/users", async () => {
 });
 
 // List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+app.get("/bank-lines", async (request) => {
+  if (!request.orgId) {
+    throw new Error("Missing organisation context");
+  }
+
+  const take = Number((request.query as BankLineQuery).take ?? 20);
   const lines = await prisma.bankLine.findMany({
+    where: { orgId: request.orgId },
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
   });
@@ -40,28 +65,26 @@ app.get("/bank-lines", async (req) => {
 });
 
 // Create a bank line
-app.post("/bank-lines", async (req, rep) => {
+app.post("/bank-lines", async (request, reply) => {
+  if (!request.orgId) {
+    throw new Error("Missing organisation context");
+  }
+
   try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
+    const body = request.body as BankLineCreateBody;
     const created = await prisma.bankLine.create({
       data: {
-        orgId: body.orgId,
+        orgId: request.orgId,
         date: new Date(body.date),
         amount: body.amount as any,
         payee: body.payee,
         desc: body.desc,
       },
     });
-    return rep.code(201).send(created);
+    return reply.code(201).send(created);
   } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
+    request.log.error(e);
+    return reply.code(400).send({ error: "bad_request" });
   }
 });
 
@@ -77,4 +100,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
