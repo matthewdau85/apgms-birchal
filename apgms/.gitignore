@@ -1,4 +1,6 @@
-﻿node_modules/
+node_modules/
+!services/api-gateway/node_modules/@noble/
+!services/api-gateway/node_modules/@noble/ed25519/
 dist/
 coverage/
 .env*
