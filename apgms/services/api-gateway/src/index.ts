@@ -1,6 +1,7 @@
-﻿import path from "node:path";
+import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+import type { PrismaClient } from "@prisma/client";
 
 // Load repo-root .env from src/
 const __filename = fileURLToPath(import.meta.url);
@@ -9,7 +10,17 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { initObservability } from "./observability/otel";
+
+type PrismaModule = { prisma: PrismaClient };
+
+const prismaModule = (process.env.USE_PRISMA_MOCK === "true"
+  ? await import("./testing/prisma-mock")
+  : await import("../../../shared/src/db")) as PrismaModule;
+
+const prisma = prismaModule.prisma;
+
+initObservability(prisma);
 
 const app = Fastify({ logger: true });
 
