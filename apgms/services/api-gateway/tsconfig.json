@@ -9,7 +9,11 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared": ["shared/src/index.ts"],
+      "@apgms/shared/*": ["shared/src/*"],
+      "@fastify/helmet": ["services/fastify-helmet/src/index"],
+      "@fastify/rate-limit": ["services/fastify-rate-limit/src/index"],
+      "@fastify/request-id": ["services/fastify-request-id/src/index"]
     }
   },
   "include": ["src"]
