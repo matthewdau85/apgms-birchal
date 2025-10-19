@@ -1,0 +1,19 @@
+{
+  "connectors": [
+    {
+      "slug": "square",
+      "name": "Square POS",
+      "category": "pos"
+    },
+    {
+      "slug": "gusto",
+      "name": "Gusto Payroll",
+      "category": "payroll"
+    },
+    {
+      "slug": "quickbooks",
+      "name": "QuickBooks Online",
+      "category": "accounting"
+    }
+  ]
+}
