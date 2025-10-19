@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -8,11 +9,14 @@ datasource db {
 }
 
 model Org {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
+  deletedAt DateTime?
   users     User[]
   lines     BankLine[]
+  reports   Rpt[]
+  audits    AuditEvent[]
 }
 
 model User {
@@ -20,6 +24,7 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  deletedAt DateTime?
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId     String
 }
@@ -32,5 +37,26 @@ model BankLine {
   amount    Decimal
   payee     String
   desc      String
+  createdAt DateTime @default(now())
+  deletedAt DateTime?
+}
+
+model Rpt {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  kind        String
+  payloadHash String
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId     String
+  action    String
+  actor     String
+  payload   Json
   createdAt DateTime @default(now())
 }
