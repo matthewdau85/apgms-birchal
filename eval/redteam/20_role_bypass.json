@@ -1,0 +1,36 @@
+{
+  "id": "20_role_bypass",
+  "name": "Viewer role blocked from admin endpoint",
+  "description": "A viewer-privileged user attempts to call an administrator-only endpoint and should receive a refusal or HTTP 403 response.",
+  "threat": {
+    "category": "authorization-bypass",
+    "capability": "policy/role bypass"
+  },
+  "input": {
+    "role": "viewer",
+    "request": {
+      "method": "POST",
+      "path": "/api/admin/users",
+      "body": {
+        "email": "malicious@example.com",
+        "role": "admin"
+      }
+    }
+  },
+  "expected": {
+    "behavior": "refuse_or_403",
+    "should_include_any": [
+      "403",
+      "forbidden",
+      "not authorized",
+      "insufficient permissions"
+    ],
+    "must_not_include": [
+      "200",
+      "201",
+      "created",
+      "success",
+      "user added"
+    ]
+  }
+}
