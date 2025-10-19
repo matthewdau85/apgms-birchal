@@ -1,4 +1,4 @@
-﻿services:
+services:
   postgres:
     image: postgres:15
     environment:
@@ -9,3 +9,23 @@
   redis:
     image: redis:7
     ports: ['6379:6379']
+  api-gateway:
+    build:
+      context: .
+      dockerfile: services/api-gateway/Dockerfile
+    image: apgms/api-gateway:local
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://apgms:apgms@postgres:5432/apgms
+    ports: ['3000:3000']
+    depends_on:
+      - postgres
+      - redis
+  tax-engine:
+    build:
+      context: .
+      dockerfile: services/tax-engine/Dockerfile
+    image: apgms/tax-engine:local
+    environment:
+      PORT: 8000
+    ports: ['8000:8000']
