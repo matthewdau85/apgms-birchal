@@ -9,11 +9,17 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import Redis from "ioredis";
 import { prisma } from "../../../shared/src/db";
+import { applyIdempotency } from "./plugins/idempotency";
+import { registerWebhookRoutes } from "./routes/webhooks";
 
 const app = Fastify({ logger: true });
+const redis = new Redis(process.env.REDIS_URL ?? "redis://localhost:6379");
 
 await app.register(cors, { origin: true });
+await applyIdempotency(app, redis);
+registerWebhookRoutes(app, redis);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
@@ -72,6 +78,10 @@ app.ready(() => {
 
 const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
+
+app.addHook("onClose", async () => {
+  await redis.quit();
+});
 
 app.listen({ port, host }).catch((err) => {
   app.log.error(err);

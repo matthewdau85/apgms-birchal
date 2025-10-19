@@ -1,0 +1,1 @@
+{"attack":"nonce_replay","method":"POST","path":"/webhooks/payto","headers":["x-signature","x-nonce","x-timestamp"],"expected":409}

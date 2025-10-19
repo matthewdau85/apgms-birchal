@@ -1,0 +1,1 @@
+{"attack":"bad_signature","method":"POST","path":"/webhooks/payto","headers":["x-signature","x-nonce","x-timestamp"],"expected":401}
