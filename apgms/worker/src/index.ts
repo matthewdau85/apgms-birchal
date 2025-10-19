@@ -1,1 +1,1 @@
-﻿console.log('worker');
+export * from "./pipeline/forecast";
