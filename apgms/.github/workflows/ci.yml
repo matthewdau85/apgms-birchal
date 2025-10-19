@@ -13,5 +13,7 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm i
+      - name: Check Prisma migrations
+        run: pnpm exec tsx scripts/check-migrations.ts
       - run: pnpm -r build
       - run: pnpm -r test
