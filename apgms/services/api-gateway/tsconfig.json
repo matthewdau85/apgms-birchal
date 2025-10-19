@@ -6,7 +6,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": ["node", "node:test"],
     "baseUrl": "../../",
     "paths": {
       "@apgms/shared/*": ["shared/src/*"]
