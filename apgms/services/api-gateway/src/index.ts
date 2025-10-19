@@ -12,6 +12,7 @@ import Fastify, { type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import piiSchema from "./schemas/pii.schema.json" assert { type: "json" };
 import {
   configurePIIProviders,
@@ -27,8 +28,21 @@ import { isValidTFN } from "@apgms/shared-au/tfn";
 =======
 import { registerAdminDataRoutes } from "./routes/admin.data";
 >>>>>>> origin/codex/add-admin-gated-subject-data-delete-endpoint
+=======
+import adminDataRoutes from "./routes/admin.data";
+>>>>>>> origin/codex/add-admin-gated-subject-data-export-endpoint
 
 const app = Fastify({ logger: true });
+
+app.decorate("db", prisma);
+app.decorate("secLog", (entry: {
+  event: string;
+  orgId: string;
+  principal: string;
+  subjectEmail: string;
+}) => {
+  app.log.info({ event: entry.event, ...entry }, "security_event");
+});
 
 await app.register(cors, { origin: true });
 app.addSchema(piiSchema);
@@ -88,6 +102,7 @@ app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
+<<<<<<< HEAD
 app.post(
   "/pii",
   {
@@ -123,6 +138,9 @@ app.post(
     return reply.code(201).send({ abn, tfnToken, secret });
   },
 );
+=======
+await app.register(adminDataRoutes);
+>>>>>>> origin/codex/add-admin-gated-subject-data-export-endpoint
 
 // List users (email + org)
 app.get("/users", async () => {
