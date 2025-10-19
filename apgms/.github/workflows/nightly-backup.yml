@@ -1,0 +1,34 @@
+name: Nightly Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      BACKUP_DIR: ${{ runner.temp }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run backup script
+        id: backup
+        working-directory: apgms
+        run: |
+          chmod +x scripts/backup.sh
+          BACKUP_PATH=$(./scripts/backup.sh)
+          echo "path=$BACKUP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Upload nightly backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-apgms-backup
+          path: ${{ steps.backup.outputs.path }}
+          retention-days: 7
