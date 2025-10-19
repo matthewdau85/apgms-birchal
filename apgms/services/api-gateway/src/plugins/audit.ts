@@ -1,0 +1,45 @@
+import fp from 'fastify-plugin';
+import { FastifyPluginAsync } from 'fastify';
+
+type AuditRecord = {
+  ts: string;
+  method: string;
+  url: string;
+  status: number;
+  requestId?: string;
+  userId?: string;
+  orgId?: string;
+};
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    auditSink: AuditRecord[];
+  }
+}
+
+export const auditPlugin: FastifyPluginAsync = fp(async (app) => {
+  app.decorate('auditSink', [] as AuditRecord[]);
+
+  app.addHook('onResponse', async (req, reply) => {
+    const method = (req.method || '').toUpperCase();
+    if (!['POST','PUT','PATCH','DELETE'].includes(method)) return;
+
+    const rec: AuditRecord = {
+      ts: new Date().toISOString(),
+      method,
+      url: req.url,
+      status: reply.statusCode,
+      requestId: (req as any).requestId,
+      userId: (req as any).user?.id,
+      orgId: (req as any).orgId,
+    };
+
+    app.auditSink.push(rec);
+    // You may also log to console in non-test envs:
+    if (process.env.NODE_ENV !== 'test') {
+      app.log.info({ audit: rec }, 'mutation_audit');
+    }
+  });
+});
+
+export default auditPlugin;
