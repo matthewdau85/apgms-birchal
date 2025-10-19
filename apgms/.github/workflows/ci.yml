@@ -15,3 +15,12 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - name: Run OTEL sample
+        run: pnpm tsx scripts/otel-sample.ts
+      - name: Upload OTEL artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: otel-artifacts
+          path: |
+            evidence/otel-run.json
+            evidence/otel-summary.json
