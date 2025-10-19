@@ -11,6 +11,31 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+type SbrMessage = {
+  id: string;
+  endpoint: string;
+  createdAt: string;
+  status: "SENT" | "QUEUED" | "FAILED";
+  summary: string;
+};
+
+const demoSbrMessages: SbrMessage[] = [
+  {
+    id: "msg_01",
+    endpoint: "https://example.gov.au/sbr",
+    createdAt: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    status: "SENT",
+    summary: "Payroll submission (batch #5842)",
+  },
+  {
+    id: "msg_00",
+    endpoint: "https://backup.example.gov.au/sbr",
+    createdAt: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
+    status: "QUEUED",
+    summary: "Activity statement upload awaiting confirmation",
+  },
+];
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
@@ -37,6 +62,13 @@ app.get("/bank-lines", async (req) => {
     take: Math.min(Math.max(take, 1), 200),
   });
   return { lines };
+});
+
+app.get("/sbr/messages", async () => {
+  const messages = [...demoSbrMessages].sort((a, b) =>
+    a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0,
+  );
+  return { messages };
 });
 
 // Create a bank line
