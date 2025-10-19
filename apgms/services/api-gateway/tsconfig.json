@@ -9,8 +9,10 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@apgms/policy-engine": ["shared/policy-engine/index.ts"],
+      "fast-check": ["services/api-gateway/test/fast-check.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }
