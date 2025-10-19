@@ -15,3 +15,8 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+      - run: pnpm trace:dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: otel-trace
+          path: evidence/otel-trace.json
