@@ -8,9 +8,11 @@
     "skipLibCheck": true,
     "types": ["node"],
     "baseUrl": "../../",
+    "outDir": "dist",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared": ["shared/src/index.ts"],
+      "@apgms/shared/*": ["packages/shared/src/*", "shared/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

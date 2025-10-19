@@ -3,6 +3,8 @@ packages:
   - webapp
   - shared
   - worker
+  - packages/*
+  - packages/*/*
 
 ignoredBuiltDependencies:
   - '@prisma/client'
