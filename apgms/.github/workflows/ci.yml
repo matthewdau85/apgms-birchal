@@ -15,3 +15,14 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  legal-docs:
+    name: Legal Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Check legal document links
+        working-directory: apgms
+        run: node scripts/check-legal-links.js
