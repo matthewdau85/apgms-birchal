@@ -15,3 +15,24 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  sec-licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --redact --source .
+      - name: License check
+        uses: pilosus/action-pip-license-checker@v1
+        if: false
+      - name: Node license guard
+        uses: mheap/github-action-allow-list-licenses@v2
+        with:
+          path: apgms/pnpm-lock.yaml
+          allow: |
+            MIT
+            Apache-2.0
+            BSD-2-Clause
+            BSD-3-Clause
+            ISC
