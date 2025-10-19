@@ -1,0 +1,9 @@
+{
+  "name": "cyclonedx-bom",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cyclonedx-bom": "bin/cyclonedx-bom.js"
+  }
+}

@@ -1,8 +1,33 @@
-﻿name: Security
-on: [push]
+name: Security
+on:
+  push:
+
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo scanning
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Prepare security directory
+        run: mkdir -p security
+      - name: Generate CycloneDX SBOM
+        run: pnpm sbom
+      - name: Run npm audit
+        run: pnpm sca
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+      - name: Upload npm audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit
+          path: security/npm-audit.json
