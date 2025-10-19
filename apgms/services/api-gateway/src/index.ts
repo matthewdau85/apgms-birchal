@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { registerPrivacyRoutes } from "./routes/privacy";
 
 const app = Fastify({ logger: true });
 
@@ -64,6 +65,8 @@ app.post("/bank-lines", async (req, rep) => {
     return rep.code(400).send({ error: "bad_request" });
   }
 });
+
+await registerPrivacyRoutes(app, { prisma });
 
 // Print routes so we can SEE POST /bank-lines is registered
 app.ready(() => {
