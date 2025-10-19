@@ -10,9 +10,11 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import redisPlugin from "./plugins/redis";
 
 const app = Fastify({ logger: true });
 
+await app.register(redisPlugin);
 await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
