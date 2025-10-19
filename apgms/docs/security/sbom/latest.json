@@ -1,0 +1,21 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "CycloneDX",
+        "name": "cyclonedx-npm",
+        "version": "3.9.5"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "apgms-birchal",
+      "version": "0.1.0"
+    }
+  },
+  "components": []
+}
