@@ -33,6 +33,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      cyclonedx-bom:
+        specifier: file:tools/cyclonedx-bom
+        version: link:tools/cyclonedx-bom
 
   services/api-gateway:
     dependencies:
@@ -80,6 +83,10 @@ importers:
   worker: {}
 
 packages:
+
+  cyclonedx-bom@file:tools/cyclonedx-bom:
+    resolution: {directory: tools/cyclonedx-bom, type: directory}
+    dev: true
 
   '@esbuild/aix-ppc64@0.25.10':
     resolution: {integrity: sha512-0NFWnA+7l41irNuaSVlLfgNT12caWJVLzp5eAVhZ0z1qpxbockccEt3s+149rE64VUI3Ml2zt8Nv5JVc4QXTsw==}
