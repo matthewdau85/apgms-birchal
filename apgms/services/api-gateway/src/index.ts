@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { RptError, verifyRpt } from "./lib/rpt.js";
 
 const app = Fastify({ logger: true });
 
@@ -62,6 +63,31 @@ app.post("/bank-lines", async (req, rep) => {
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  }
+});
+
+app.get("/audit/rpt/:token", async (req, rep) => {
+  const { token } = req.params as { token: string };
+
+  try {
+    const verified = await verifyRpt(token);
+    return {
+      token: verified.token,
+      header: verified.header,
+      payload: verified.payload,
+      key: {
+        id: verified.key.id,
+        createdAt: verified.key.createdAt,
+      },
+      verifiedAt: new Date().toISOString(),
+    };
+  } catch (error) {
+    if (error instanceof RptError) {
+      req.log.warn({ err: error, token }, "failed to verify RPT");
+      return rep.status(400).send({ error: "invalid_rpt", code: error.code });
+    }
+    req.log.error(error);
+    return rep.status(500).send({ error: "internal_error" });
   }
 });
 
