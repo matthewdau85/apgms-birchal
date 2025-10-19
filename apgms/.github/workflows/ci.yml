@@ -1,8 +1,27 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: apgms
+          POSTGRES_PASSWORD: apgms
+          POSTGRES_DB: apgms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U apgms -d apgms_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms_test?schema=public
+      TEST_DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms_test?schema=public
+      E2E_DATABASE_URL: postgresql://apgms:apgms@localhost:5432/apgms_test?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -12,6 +31,8 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
-      - run: pnpm i
-      - run: pnpm -r build
-      - run: pnpm -r test
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma migrate deploy --schema shared/prisma/schema.prisma
+      - run: pnpm test:unit
+      - run: pnpm test:integration
+      - run: pnpm test:e2e
