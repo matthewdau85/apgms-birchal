@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "NODE_TEST_EXTENSIONS=.test.ts node --import tsx --test test/kms.test.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
