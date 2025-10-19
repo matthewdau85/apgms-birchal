@@ -1,0 +1,29 @@
+name: security
+on:
+  push:
+  pull_request:
+jobs:
+  codeql:
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          source-root: apgms
+      - uses: github/codeql-action/analyze@v3
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: CycloneDX/gh-node-module-generatebom@v3
+        with:
+          path: apgms
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: apgms/bom.xml
