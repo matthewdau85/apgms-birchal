@@ -9,11 +9,23 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import idempotencyPlugin from "./plugins/idempotency";
+import webhooksRoutes from "./routes/webhooks";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+app.addContentTypeParser("application/json", { parseAs: "string" }, (request, body, done) => {
+  (request as typeof request & { rawBody?: string }).rawBody = body;
+  try {
+    done(null, body.length ? JSON.parse(body) : {});
+  } catch (err) {
+    done(err as Error);
+  }
+});
+await idempotencyPlugin(app);
+await webhooksRoutes(app);
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
