@@ -1,1 +1,15 @@
-{"name":"@apgms/worker","version":"0.1.0","type":"module","main":"dist/index.js","scripts":{"build":"echo build worker","test":"echo test worker"}}
+{
+  "name": "@apgms/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "echo build worker",
+    "test": "node --test --import tsx test/*.spec.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

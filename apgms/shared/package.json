@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./payto": "./src/payto.ts"
+  },
   "scripts": {
     "prisma:generate": "prisma generate --schema=shared/prisma/schema.prisma",
     "build": "echo building shared"
