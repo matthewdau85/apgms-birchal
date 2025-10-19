@@ -15,3 +15,31 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  prompt-validate:
+    name: Prompt validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+      - run: pnpm i
+      - name: Lint prompt schema
+        run: node -e "JSON.parse(require('node:fs').readFileSync('prompts/schema.json','utf8'))"
+      - name: Validate prompt examples
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(prompts/examples/*.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No prompt examples found."
+            exit 0
+          fi
+          for file in "${files[@]}"; do
+            echo "Validating $file"
+            pnpm validate:prompt < "$file"
+          done
