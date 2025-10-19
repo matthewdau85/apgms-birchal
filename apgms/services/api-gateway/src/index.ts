@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -10,13 +10,23 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { config } from "./config";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+const origin = config.allowedOrigins.includes("*") ? true : config.allowedOrigins;
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+await app.register(cors, { origin });
+
+app.log.info(
+  {
+    port: config.port,
+    rateLimitMax: config.rateLimitMax,
+    redisUrlConfigured: Boolean(config.redisUrl),
+    jwtStrategy: config.jwt.strategy,
+  },
+  "environment validated",
+);
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -70,11 +80,9 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
 const host = "0.0.0.0";
 
-app.listen({ port, host }).catch((err) => {
+app.listen({ port: config.port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
