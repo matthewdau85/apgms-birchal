@@ -15,3 +15,67 @@ jobs:
       - run: pnpm i
       - run: pnpm -r build
       - run: pnpm -r test
+  perf-check:
+    name: Performance Check
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - uses: grafana/setup-k6-action@v1
+      - name: Start mock API gateway
+        run: |
+          node <<'NODE' &
+          const http = require('http');
+          const port = Number(process.env.MOCK_PORT || 3333);
+          const routes = {
+            '/health': () => ({ status: 200, body: { ok: true, service: 'api-gateway' } }),
+            '/users': () => ({ status: 200, body: { users: [] } }),
+            '/bank-lines': (req) => {
+              if (req.method === 'POST') {
+                return { status: 201, body: { id: 'synthetic', ok: true } };
+              }
+              return { status: 200, body: { lines: [] } };
+            },
+          };
+          const server = http.createServer((req, res) => {
+            const responseFactory = routes[req.url];
+            if (!responseFactory) {
+              res.writeHead(404, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'not_found' }));
+              return;
+            }
+            const payload = responseFactory(req);
+            res.writeHead(payload.status, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(payload.body));
+          });
+          server.listen(port, '0.0.0.0', () => {
+            console.log(`mock api listening on ${port}`);
+          });
+          NODE
+          echo $! > mock-api.pid
+          sleep 2
+        env:
+          MOCK_PORT: 3333
+      - name: Run k6 performance test
+        env:
+          BASE_URL: http://127.0.0.1:3333
+          ALLOCATIONS_LATENCY_SLO_MS: 250
+          ERROR_BUDGET_RATE: 0.01
+        run: |
+          k6 run --summary-export k6-report.json scripts/perf-k6.js
+      - name: Stop mock API gateway
+        if: always()
+        run: |
+          if [ -f mock-api.pid ]; then
+            kill $(cat mock-api.pid)
+          fi
+      - name: Upload k6 report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-report
+          path: k6-report.json

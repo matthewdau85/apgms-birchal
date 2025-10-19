@@ -1,0 +1,38 @@
+groups:
+  - name: apgms-api-gateway-slos
+    rules:
+      - alert: ApiGatewayLatencyP95TooHigh
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(http_request_duration_seconds_bucket{service="api-gateway",route="/bank-lines",method="POST"}[5m])
+            )
+          ) > 0.25
+        for: 10m
+        labels:
+          severity: page
+          team: sre
+        annotations:
+          summary: "API Gateway allocation apply latency breaching 250ms p95"
+          description: |
+            Investigate POST /bank-lines latency and follow the on-call runbook.
+            SLO definition: docs/SLOs.yaml#p95_allocations_apply
+          runbook: docs/runbooks/oncall.md
+      - alert: ApiGatewayElevatedErrorRate
+        expr: |
+          sum(rate(http_requests_total{service="api-gateway",status=~"5.."}[5m]))
+            /
+          sum(rate(http_requests_total{service="api-gateway"}[5m]))
+          > 0.01
+        for: 15m
+        labels:
+          severity: page
+          team: sre
+        annotations:
+          summary: "API Gateway error budget burn > 1%"
+          description: |
+            5xx ratio exceeded target error budget. Validate dependencies and
+            follow the on-call runbook.
+            SLO definition: docs/SLOs.yaml#error_rate
+          runbook: docs/runbooks/oncall.md
