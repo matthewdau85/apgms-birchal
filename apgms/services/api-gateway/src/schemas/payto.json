@@ -1,0 +1,144 @@
+{
+  "$id": "https://apgms.example.com/schemas/payto.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "definitions": {
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "ACTIVE", "REVOKED"]
+    },
+    "createConsentRequest": {
+      "type": "object",
+      "required": ["orgId", "bank", "accountRef"],
+      "additionalProperties": false,
+      "properties": {
+        "orgId": { "type": "string", "minLength": 1 },
+        "bank": { "type": "string", "minLength": 1 },
+        "accountRef": { "type": "string", "minLength": 1 }
+      }
+    },
+    "createConsentResponse": {
+      "type": "object",
+      "required": ["id", "status", "next"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "$ref": "#/definitions/status" },
+        "next": {
+          "type": "object",
+          "required": ["type", "url", "expiresAt"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "redirect" },
+            "url": { "type": "string", "format": "uri" },
+            "expiresAt": { "type": "string" }
+          }
+        }
+      }
+    },
+    "getConsentResponse": {
+      "type": "object",
+      "required": ["id", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "$ref": "#/definitions/status" }
+      }
+    },
+    "createMandateRequest": {
+      "type": "object",
+      "required": ["orgId", "bankConnectionId", "reference", "amountLimitCents"],
+      "additionalProperties": false,
+      "properties": {
+        "orgId": { "type": "string", "minLength": 1 },
+        "bankConnectionId": { "type": "string", "minLength": 1 },
+        "reference": { "type": "string", "minLength": 1 },
+        "amountLimitCents": { "type": "integer", "minimum": 1 },
+        "startAt": { "type": "string" },
+        "endAt": { "type": "string" }
+      }
+    },
+    "createMandateResponse": {
+      "type": "object",
+      "required": ["id", "status", "nextEvent"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "$ref": "#/definitions/status" },
+        "nextEvent": {
+          "type": "object",
+          "required": ["endpoint", "body"],
+          "additionalProperties": false,
+          "properties": {
+            "endpoint": { "type": "string" },
+            "body": { "type": "object" }
+          }
+        }
+      }
+    },
+    "getMandateResponse": {
+      "type": "object",
+      "required": ["id", "status", "latestEvent"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "$ref": "#/definitions/status" },
+        "latestEvent": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["kind", "occurredAt", "payload"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "type": "string" },
+                "occurredAt": { "type": "string" },
+                "payload": { "type": "object" }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "consentWebhook": {
+      "type": "object",
+      "required": ["type", "orgId", "bankConnectionId", "status", "occurredAt"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "consent.updated" },
+        "orgId": { "type": "string", "minLength": 1 },
+        "bankConnectionId": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/definitions/status" },
+        "occurredAt": { "type": "string" }
+      }
+    },
+    "mandateWebhook": {
+      "type": "object",
+      "required": ["type", "orgId", "mandateId", "bankConnectionId", "reference", "status", "amountLimitCents", "occurredAt"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "mandate.updated" },
+        "orgId": { "type": "string", "minLength": 1 },
+        "mandateId": { "type": "string", "minLength": 1 },
+        "bankConnectionId": { "type": "string", "minLength": 1 },
+        "reference": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/definitions/status" },
+        "amountLimitCents": { "type": "integer", "minimum": 1 },
+        "occurredAt": { "type": "string" }
+      }
+    },
+    "paymentWebhook": {
+      "type": "object",
+      "required": ["type", "orgId", "mandateId", "paymentId", "amountCents", "status", "occurredAt"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "payment.processed" },
+        "orgId": { "type": "string", "minLength": 1 },
+        "mandateId": { "type": "string", "minLength": 1 },
+        "paymentId": { "type": "string", "minLength": 1 },
+        "amountCents": { "type": "integer", "minimum": 0 },
+        "status": { "type": "string", "enum": ["PENDING", "SETTLED", "FAILED"] },
+        "occurredAt": { "type": "string" }
+      }
+    }
+  }
+}

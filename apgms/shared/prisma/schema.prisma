@@ -13,6 +13,9 @@ model Org {
   createdAt DateTime @default(now())
   users     User[]
   lines     BankLine[]
+  bankConnections BankConnection[]
+  mandates        PayToMandate[]
+  audits          AuditBlob[]
 }
 
 model User {
@@ -33,4 +36,42 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+}
+
+model BankConnection {
+  id          String         @id @default(cuid())
+  org         Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  bank        String
+  accountRef  String
+  status      String         @db.VarChar(16)
+  mandates    PayToMandate[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model PayToMandate {
+  id               String         @id @default(cuid())
+  org              Org            @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId            String
+  bankConnection   BankConnection @relation(fields: [bankConnectionId], references: [id], onDelete: Cascade)
+  bankConnectionId String
+  reference        String
+  status           String         @db.VarChar(16)
+  amountLimitCents Int
+  startAt          DateTime?
+  endAt            DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model AuditBlob {
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  subjectType String
+  subjectId   String
+  kind        String
+  payload     Json
+  createdAt   DateTime @default(now())
 }
