@@ -1,8 +1,11 @@
-﻿name: CI
+name: CI
 on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apgms
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -13,5 +16,107 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm i
+      - name: Generate audit report
+        run: pnpm audit --json > audit.json
+      - name: Enforce security allowlist
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const auditPath = path.resolve('audit.json');
+          if (!fs.existsSync(auditPath)) {
+            console.error('Expected audit.json to exist after running pnpm audit.');
+            process.exit(1);
+          }
+
+          const allowlistPath = path.resolve('audit-allowlist.json');
+          if (!fs.existsSync(allowlistPath)) {
+            console.error('audit-allowlist.json is required to justify high severity findings.');
+            process.exit(1);
+          }
+
+          const auditData = JSON.parse(fs.readFileSync(auditPath, 'utf8'));
+          if (auditData.error) {
+            console.error('Unable to evaluate audit findings:', auditData.error.message || auditData.error);
+            process.exit(1);
+          }
+
+          const allowlistEntries = JSON.parse(fs.readFileSync(allowlistPath, 'utf8'));
+          if (!Array.isArray(allowlistEntries)) {
+            console.error('audit-allowlist.json must be an array of allowlist entries.');
+            process.exit(1);
+          }
+
+          const invalidEntries = [];
+          const allowlist = new Set();
+
+          for (const entry of allowlistEntries) {
+            if (!entry || typeof entry !== 'object') {
+              invalidEntries.push('entry is not an object');
+              continue;
+            }
+
+            const id = String(entry.id || '').trim();
+            const pkg = String(entry.pkg || '').trim();
+            const justification = String(entry.justification || '').trim();
+
+            if (!id || !pkg || !justification) {
+              invalidEntries.push(`${id || '<missing id>'} ${pkg || '<missing pkg>'}`);
+              continue;
+            }
+
+            allowlist.add(`${id}::${pkg}`);
+          }
+
+          if (invalidEntries.length) {
+            console.error('Invalid audit allowlist entries (missing id, pkg, or justification):');
+            for (const invalid of invalidEntries) {
+              console.error(` - ${invalid}`);
+            }
+            process.exit(1);
+          }
+
+          const advisories = auditData.advisories || {};
+          const severitiesToBlock = new Set(['high', 'critical']);
+          const unallowlisted = new Map();
+
+          for (const advisory of Object.values(advisories)) {
+            const severity = String(advisory.severity || '').toLowerCase();
+            if (!severitiesToBlock.has(severity)) {
+              continue;
+            }
+
+            const moduleName = advisory.module_name || advisory.name || 'unknown-package';
+            const cveIds = Array.isArray(advisory.cves) && advisory.cves.length
+              ? advisory.cves.map((cve) => String(cve).trim()).filter(Boolean)
+              : [String(advisory.id || moduleName)];
+            const findings = Array.isArray(advisory.findings) && advisory.findings.length
+              ? advisory.findings
+              : [{}];
+
+            for (const cve of cveIds) {
+              for (const finding of findings) {
+                const version = String(finding.version || finding.installedVersion || 'unknown-version');
+                const pkgIdentifier = `${moduleName}@${version}`;
+                const key = `${cve}::${pkgIdentifier}`;
+
+                if (!allowlist.has(key)) {
+                  unallowlisted.set(key, { id: cve, pkg: pkgIdentifier });
+                }
+              }
+            }
+          }
+
+          if (unallowlisted.size) {
+            console.error('High severity vulnerabilities require an allowlist entry with justification:');
+            for (const { id, pkg } of unallowlisted.values()) {
+              console.error(` - ${id} in ${pkg}`);
+            }
+            process.exit(1);
+          }
+
+          console.log('No unallowlisted high severity vulnerabilities detected.');
+          NODE
       - run: pnpm -r build
       - run: pnpm -r test

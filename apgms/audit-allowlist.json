@@ -1,0 +1,7 @@
+[
+  {
+    "id": "CVE-XXXX-YYYY",
+    "pkg": "name@version",
+    "justification": "not reachable in prod image"
+  }
+]
