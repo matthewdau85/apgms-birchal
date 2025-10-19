@@ -1,0 +1,31 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-edge-02",
+  "category": "edge",
+  "description": "Handling duplicate supplier banking records that differ only by spacing in the account name.",
+  "input": {
+    "context": "Supplier account name entered as 'Acme Holdings Pty Ltd' while registry lists 'Acme Holdings Pty  Ltd' (double space). Routing and account numbers match registry values.",
+    "question": "Should the duplicate detection be suppressed?",
+    "data_points": [
+      "account_number_match: true",
+      "routing_number_match: true",
+      "name_difference: whitespace"
+    ]
+  },
+  "expected": {
+    "answer": "Yes. Whitespace-only differences are normalised by the registry, so this is not a true duplicate risk.",
+    "confidence": 0.82,
+    "rationale": "Data quality guideline 4.2 treats repeated whitespace as equivalent and safe to auto-merge."
+  },
+  "actual": {
+    "answer": "Yes. Whitespace-only differences are normalised by the registry, so this is not a true duplicate risk.",
+    "confidence": 0.82,
+    "passed": true
+  },
+  "metadata": {
+    "owner": "data-quality",
+    "created_at": "2024-07-01",
+    "last_verified": "2024-11-01",
+    "tags": ["edge", "data-quality", "banking"]
+  }
+}

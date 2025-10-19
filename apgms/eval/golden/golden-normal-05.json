@@ -1,0 +1,31 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-05",
+  "category": "normal",
+  "description": "Standard procurement attestation workflow when all supplier checks succeed.",
+  "input": {
+    "context": "Supplier submitted ISO9001 certificate, insurance currency letter, and bank account verification which all passed automated validation.",
+    "question": "Should we issue the purchase order automatically?",
+    "data_points": [
+      "iso_cert_valid: true",
+      "insurance_expiry: 2025-08-30",
+      "bank_account_verified: true"
+    ]
+  },
+  "expected": {
+    "answer": "Proceed with automatic purchase order issuance because mandatory supplier checks succeeded.",
+    "confidence": 0.91,
+    "rationale": "All risk blockers cleared and bank account matched our registry."
+  },
+  "actual": {
+    "answer": "Proceed with automatic purchase order issuance because mandatory supplier checks succeeded.",
+    "confidence": 0.91,
+    "passed": true
+  },
+  "metadata": {
+    "owner": "procurement-ops",
+    "created_at": "2024-05-17",
+    "last_verified": "2024-11-03",
+    "tags": ["procurement", "automation", "supplier"]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-01",
+  "category": "normal",
+  "description": "Typical revenue assessment for a manufacturing applicant with clean documentation.",
+  "input": {
+    "context": "Applicant Orion Machines reported FY23 revenue of $2.3M with audited statements and no outstanding compliance actions.",
+    "question": "Does this application meet the automatic approval revenue threshold?",
+    "data_points": [
+      "industry: manufacturing",
+      "audited_financials: true",
+      "revenue_threshold: $1.5M"
+    ]
+  },
+  "expected": {
+    "answer": "Yes. The applicant exceeds the $1.5M revenue threshold with verified financials, so automatic approval applies.",
+    "confidence": 0.92,
+    "rationale": "Revenue is 53% above the limit and documentation is verified."
+  },
+  "actual": {
+    "answer": "Yes. The applicant exceeds the $1.5M revenue threshold with verified financials, so automatic approval applies.",
+    "confidence": 0.92,
+    "passed": true,
+    "notes": "Baseline classification unchanged since July 2024 audit."
+  },
+  "metadata": {
+    "owner": "ops-review",
+    "created_at": "2024-07-18",
+    "last_verified": "2024-11-02",
+    "tags": ["revenue", "automation", "manufacturing"]
+  }
+}

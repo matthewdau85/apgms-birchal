@@ -1,0 +1,30 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-normal-02",
+  "category": "normal",
+  "description": "Routine check for digital identity verification outcome.",
+  "input": {
+    "context": "Applicant provided driver's licence and Medicare card which matched the Document Verification Service records on first attempt.",
+    "question": "Should the identity status be marked as verified?",
+    "data_points": [
+      "dvs_matches: 2 of 2",
+      "manual_review_required: false"
+    ]
+  },
+  "expected": {
+    "answer": "Yes. Two independent DVS matches confirm identity and no manual review flags exist.",
+    "confidence": 0.95,
+    "rationale": "Both documents returned match codes A and B with recent issuance dates."
+  },
+  "actual": {
+    "answer": "Yes. Two independent DVS matches confirm identity and no manual review flags exist.",
+    "confidence": 0.95,
+    "passed": true
+  },
+  "metadata": {
+    "owner": "compliance-controls",
+    "created_at": "2024-08-11",
+    "last_verified": "2024-11-02",
+    "tags": ["identity", "dvs", "normal"]
+  }
+}

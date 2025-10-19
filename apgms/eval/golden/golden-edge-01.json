@@ -1,0 +1,32 @@
+{
+  "$schema": "./_schema.json",
+  "id": "golden-edge-01",
+  "category": "edge",
+  "description": "Borderline eligibility when reported revenue equals the minimum threshold and requires confirmation of rounding policy.",
+  "input": {
+    "context": "Startup Lumen Labs reported FY23 revenue of exactly $1,500,000 and supplied an accountant letter noting figures are rounded to the nearest dollar.",
+    "question": "Should we treat the revenue as meeting the minimum threshold?",
+    "data_points": [
+      "revenue_reported: $1,500,000",
+      "threshold: $1,500,000",
+      "rounding_policy: nearest_dollar"
+    ]
+  },
+  "expected": {
+    "answer": "Yes. Policy treats figures rounded to the nearest dollar as exact, so the applicant meets the minimum threshold.",
+    "confidence": 0.83,
+    "rationale": "Eligibility guide 2.1 confirms no extra buffer is required when rounding precision is declared."
+  },
+  "actual": {
+    "answer": "Yes. Policy treats figures rounded to the nearest dollar as exact, so the applicant meets the minimum threshold.",
+    "confidence": 0.83,
+    "passed": true,
+    "notes": "Validated with finance policy owner on 2024-10-05."
+  },
+  "metadata": {
+    "owner": "finance-policy",
+    "created_at": "2024-10-06",
+    "last_verified": "2024-11-02",
+    "tags": ["edge", "eligibility", "rounding"]
+  }
+}
