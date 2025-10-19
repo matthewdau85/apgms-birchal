@@ -1,12 +1,5 @@
-const rootElement = document.querySelector('#root');
-
-if (rootElement) {
-  rootElement.textContent = 'webapp';
-}
+console.log('webapp');
 
 if (import.meta.env.DEV) {
-  requestAnimationFrame(async () => {
-    const { runAxe } = await import('./dev/axe');
-    await runAxe();
-  });
+  import('./dev/axe');
 }
