@@ -21,9 +21,15 @@ importers:
         specifier: ^4.1.12
         version: 4.1.12
     devDependencies:
+      '@playwright/test':
+        specifier: workspace:*
+        version: link:tests/playwright-shim
       '@types/node':
         specifier: ^24.7.1
         version: 24.7.1
+      cyclonedx-bom:
+        specifier: workspace:*
+        version: link:tools/cyclonedx-bom
       prisma:
         specifier: 6.17.1
         version: 6.17.1(typescript@5.9.3)
@@ -78,6 +84,14 @@ importers:
   webapp: {}
 
   worker: {}
+
+  tests/playwright-shim:
+    dependencies:
+      tsx:
+        specifier: ^4.20.6
+        version: 4.20.6
+
+  tools/cyclonedx-bom: {}
 
 packages:
 

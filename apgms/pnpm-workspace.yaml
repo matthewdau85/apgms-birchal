@@ -3,6 +3,8 @@ packages:
   - webapp
   - shared
   - worker
+  - tests/playwright-shim
+  - tools/cyclonedx-bom
 
 ignoredBuiltDependencies:
   - '@prisma/client'
