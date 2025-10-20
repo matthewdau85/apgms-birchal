@@ -1,0 +1,25 @@
+{
+  "id": "as4_clock_skew",
+  "summary": "Receipt timestamp outside ±10 minutes triggers retry window then failure.",
+  "profile": "AS4",
+  "category": "receipt",
+  "input": {
+    "messageId": "urn:uuid:24eb7c5d-e4b0-4e3c-9f3f-a9186e8de92d",
+    "receiptTimestamp": "2024-08-29T11:49:30Z",
+    "processing": {
+      "receivedAt": "2024-08-29T12:02:30Z",
+      "skewToleranceMinutes": 10
+    }
+  },
+  "expectations": {
+    "initial": {
+      "outcome": "soft-fail",
+      "reason": "Receipt timestamp is outside ±10 minutes window.",
+      "retryWindowMinutes": 10
+    },
+    "postWindow": {
+      "outcome": "fail",
+      "reason": "Retry window elapsed without valid receipt timestamp."
+    }
+  }
+}

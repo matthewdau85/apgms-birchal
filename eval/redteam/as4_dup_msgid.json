@@ -1,0 +1,18 @@
+{
+  "id": "as4_dup_msgid",
+  "summary": "Duplicate AS4 messageId should return HTTP 409 conflict.",
+  "profile": "AS4",
+  "category": "replay",
+  "input": {
+    "messageId": "urn:uuid:103fd8bb-1464-40c7-9a4d-4fa9b11683c2",
+    "conversationId": "urn:ato:conversation:2024-08-29",
+    "attempt": 2
+  },
+  "expectations": {
+    "httpResponse": {
+      "status": 409,
+      "reason": "Duplicate messageId replay detected",
+      "retryable": false
+    }
+  }
+}
