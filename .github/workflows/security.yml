@@ -1,0 +1,52 @@
+name: Security Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - integration/**
+  workflow_dispatch:
+
+jobs:
+  security-checks:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apgms/pnpm-lock.yaml
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: apgms
+        run: pnpm install --frozen-lockfile
+
+      - name: pnpm audit (prod, recursive)
+        working-directory: apgms
+        run: pnpm audit --recursive --prod --audit-level=high
+
+      - name: Generate CycloneDX SBOM
+        working-directory: apgms
+        run: pnpm dlx @cyclonedx/cyclonedx-npm --output-format json --output-file sbom.json --include-dev false
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyclone-dx-sbom
+          path: apgms/sbom.json
+          if-no-files-found: error
