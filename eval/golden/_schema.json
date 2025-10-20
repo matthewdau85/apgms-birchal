@@ -1,0 +1,24 @@
+{
+  "id": "case-001", // unique identifier for the case file
+  "kind": "route", // always "route"
+  "route": "allocations.apply", // one of: allocations.apply | allocations.preview | dashboard
+  "input": {
+    // request payload relevant to the selected route
+    "household": {
+      "members": 3,
+      "location": "VIC"
+    },
+    "application": {
+      "type": "standard"
+    }
+  },
+  "expect": {
+    "valid_schema": true, // whether the response should satisfy the schema
+    "rules": [
+      // list any rule identifiers or descriptions expected to trigger
+      "must-include-address",
+      "verify-household-size"
+    ],
+    "notes": "Optional free-form commentary for contributors"
+  }
+}
