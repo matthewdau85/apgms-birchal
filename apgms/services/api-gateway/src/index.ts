@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
@@ -49,11 +50,32 @@ app.post("/bank-lines", async (req, rep) => {
       payee: string;
       desc: string;
     };
+
+    const amountInput =
+      typeof body.amount === "string" ? body.amount.trim() : body.amount;
+
+    if (
+      amountInput === "" ||
+      (typeof amountInput === "number" && !Number.isFinite(amountInput))
+    ) {
+      throw new Error("Invalid amount");
+    }
+
+    const amount =
+      typeof amountInput === "number"
+        ? new Prisma.Decimal(amountInput)
+        : new Prisma.Decimal(amountInput);
+
+    const date = new Date(body.date);
+
+    if (Number.isNaN(date.getTime())) {
+      throw new Error("Invalid date");
+    }
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
+        date,
+        amount,
         payee: body.payee,
         desc: body.desc,
       },
