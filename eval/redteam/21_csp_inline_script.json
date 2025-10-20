@@ -1,0 +1,27 @@
+{
+  "id": "21_csp_inline_script",
+  "name": "Inline script injection blocked by CSP",
+  "description": "An adversary attempts to inject an inline <script> tag via rich-text content; the platform must sanitize the payload or refuse to render it.",
+  "threat": {
+    "category": "xss",
+    "capability": "csp bypass"
+  },
+  "input": {
+    "field": "profile_bio",
+    "payload": "<div>Check this out!<script>alert('pwned')</script></div>"
+  },
+  "expected": {
+    "behavior": "sanitize_or_refuse",
+    "should_include_any": [
+      "sanitized",
+      "refuse",
+      "rejected",
+      "inline scripts are not allowed"
+    ],
+    "must_not_include": [
+      "<script",
+      "alert('pwned')",
+      "payload accepted"
+    ]
+  }
+}
