@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Accessibility Smoke Test</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header>
+      <h1>Birchal Platform</h1>
+      <nav aria-label="Primary">
+        <ul>
+          <li><a href="#main-content">Overview</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main id="main-content">
+      <section aria-labelledby="overview-heading">
+        <h2 id="overview-heading">Accessible by default</h2>
+        <p>
+          This static shell exists so that automated accessibility tooling can run even while the
+          application is under active development.
+        </p>
+        <button type="button">Learn more</button>
+      </section>
+      <section id="contact" aria-labelledby="contact-heading">
+        <h2 id="contact-heading">Stay in touch</h2>
+        <form>
+          <div>
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+          <div>
+            <label for="updates">Updates</label>
+            <select id="updates" name="updates">
+              <option value="weekly">Weekly summary</option>
+              <option value="monthly">Monthly roundup</option>
+              <option value="quarterly">Quarterly digest</option>
+            </select>
+          </div>
+          <button type="submit">Subscribe</button>
+        </form>
+      </section>
+    </main>
+    <footer>
+      <p>&copy; 2024 Birchal</p>
+    </footer>
+  </body>
+</html>

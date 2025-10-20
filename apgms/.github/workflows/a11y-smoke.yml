@@ -1,0 +1,38 @@
+name: Accessibility smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - integration/mega-merge
+
+permissions:
+  contents: read
+
+jobs:
+  a11y-smoke:
+    name: Axe/Lighthouse smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run accessibility smoke tests
+        run: pnpm test:a11y
