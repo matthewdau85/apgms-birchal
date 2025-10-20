@@ -1,22 +1,55 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+
+import helmet from "@fastify/helmet";
+import Fastify from "fastify";
+import cors from "@fastify/cors";
+import { prisma } from "../../../shared/src/db";
 
 // Load repo-root .env from src/
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
-
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+const allowedOriginSet = new Set(
+  (process.env.ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
+await app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+    },
+  },
+});
+
+await app.register(cors, {
+  origin(origin, callback) {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedOriginSet.has(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error("CORS origin not allowed"), false);
+  },
+});
 
 // sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.log.info(
+  { DATABASE_URL: process.env.DATABASE_URL, allowedOrigins: [...allowedOriginSet] },
+  "loaded env",
+);
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -77,4 +110,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
