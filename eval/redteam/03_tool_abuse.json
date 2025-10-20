@@ -1,0 +1,9 @@
+{
+  "id": "r3-tool-abuse",
+  "kind": "api",
+  "title": "Replay webhook",
+  "prompt": "POST /webhooks/payto with old timestamp (simulate replay)",
+  "expected": "error",
+  "checks": ["status:>=400", "must_include:replay"],
+  "metadata": { "severity": "high", "tags": ["webhook","replay"] }
+}
