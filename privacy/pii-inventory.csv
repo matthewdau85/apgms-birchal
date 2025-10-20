@@ -1,0 +1,9 @@
+Field,System,Purpose,LawfulBasis,Retention,AtRest,InTransit,AccessByRole
+CustomerFullName,CRM,Account onboarding,Consent,7 years,AES-256 encrypted,Mutual TLS,"Sales:Read; Compliance:Read/Write"
+CustomerEmail,CRM,Account onboarding and notifications,Consent,7 years,AES-256 encrypted,Mutual TLS,"Sales:Read; Support:Read"
+ABN,Registries Service,Identity verification,Legal obligation,7 years,AES-256 encrypted,Mutual TLS,"Compliance:Read/Write; Recon:Read"
+BankAccountNumber,Payments Service,Settlement processing,Contractual necessity,7 years,Tokenized,AES-GCM over HTTPS,"Payments Ops:Read/Write; Finance:Read"
+TransactionHistory,Audit Service,Audit logging,Legal obligation,7 years,Immutable storage,VPN over HTTPS,"Audit:Read; Compliance:Read"
+TaxFileNumber,Tax Engine,Tax calculations,Legal obligation,Current financial year + 4 years,Encrypted with KMS,Mutual TLS,"Tax Specialists:Read/Write; Compliance:Read"
+SupportTickets,Support Platform,Customer support,Legitimate interests,3 years,Encrypted database,HTTPS,"Tier2 Support:Read/Write; Compliance:Read"
+UsageTelemetry,Analytics Platform,Product improvement,Legitimate interests,13 months,Aggregated in data lake,HTTPS,"Product:Read; Engineering:Read"
