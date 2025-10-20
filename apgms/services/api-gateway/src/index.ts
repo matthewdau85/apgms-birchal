@@ -15,26 +15,53 @@ const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+const apiGatewayKey = process.env.API_GATEWAY_KEY;
+
+const headerValue = (value: unknown) =>
+  Array.isArray(value) ? value[0] : value;
+
+app.addHook("preHandler", async (req, reply) => {
+  if (req.method !== "GET") {
+    const providedKey = headerValue(req.headers["x-api-key"]);
+    if (!apiGatewayKey || providedKey !== apiGatewayKey) {
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+  }
+});
+
+const requireOrgHeader = (req: { headers: Record<string, any> }) => {
+  const orgId = headerValue(req.headers["x-org-id"]);
+  return typeof orgId === "string" && orgId.length > 0 ? orgId : null;
+};
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
-// List users (email + org)
-app.get("/users", async () => {
+// List users (scoped by org, minimal fields)
+app.get("/users", async (req, rep) => {
+  const orgId = requireOrgHeader(req);
+  if (!orgId) {
+    return rep.code(400).send({ error: "missing_org" });
+  }
   const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
+    where: { orgId },
+    select: { id: true, email: true },
     orderBy: { createdAt: "desc" },
   });
   return { users };
 });
 
 // List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
+app.get("/bank-lines", async (req, rep) => {
+  const orgId = requireOrgHeader(req);
+  if (!orgId) {
+    return rep.code(400).send({ error: "missing_org" });
+  }
   const take = Number((req.query as any).take ?? 20);
   const lines = await prisma.bankLine.findMany({
+    where: { orgId },
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
+    select: { id: true, date: true, amount: true, payee: true, desc: true },
   });
   return { lines };
 });
@@ -49,6 +76,13 @@ app.post("/bank-lines", async (req, rep) => {
       payee: string;
       desc: string;
     };
+    const orgId = requireOrgHeader(req);
+    if (!orgId) {
+      return rep.code(400).send({ error: "missing_org" });
+    }
+    if (body.orgId !== orgId) {
+      return rep.code(403).send({ error: "forbidden" });
+    }
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
@@ -58,7 +92,15 @@ app.post("/bank-lines", async (req, rep) => {
         desc: body.desc,
       },
     });
-    return rep.code(201).send(created);
+    const sanitized = {
+      id: created.id,
+      orgId: created.orgId,
+      date: created.date,
+      amount: created.amount,
+      payee: created.payee,
+      desc: created.desc,
+    };
+    return rep.code(201).send(sanitized);
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
