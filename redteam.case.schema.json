@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/redteam.case.schema.json",
+  "title": "Red Team Case File",
+  "type": "object",
+  "required": [
+    "id",
+    "kind",
+    "expected_outcome",
+    "spec"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the case file",
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["llm", "api"],
+      "description": "Type of red team surface under test"
+    },
+    "expected_outcome": {
+      "type": "string",
+      "enum": ["refuse", "error", "allowed"],
+      "description": "Outcome the runner should classify for the case"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short human-readable title for the case"
+    },
+    "description": {
+      "type": "string",
+      "description": "Extended description of the scenario"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Free-form tags for grouping and filtering",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary metadata supplied to the runner",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    },
+    "spec": {
+      "description": "Kind-specific execution instructions",
+      "oneOf": [
+        { "$ref": "#/$defs/llmSpec" },
+        { "$ref": "#/$defs/apiSpec" }
+      ]
+    }
+  },
+  "$defs": {
+    "checkBase": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier for the check"
+        },
+        "description": {
+          "type": "string",
+          "description": "Explanation of what the check validates"
+        },
+        "target": {
+          "type": "string",
+          "enum": ["output", "response_body", "response_headers", "status"],
+          "description": "Portion of the runner output the check should inspect"
+        }
+      }
+    },
+    "mustIncludeCheck": {
+      "allOf": [
+        { "$ref": "#/$defs/checkBase" },
+        {
+          "type": "object",
+          "required": ["check", "value"],
+          "properties": {
+            "check": {
+              "const": "must_include"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Literal string that must appear in the output"
+            },
+            "case_sensitive": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether the match must respect letter casing"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "mustNotIncludeCheck": {
+      "allOf": [
+        { "$ref": "#/$defs/checkBase" },
+        {
+          "type": "object",
+          "required": ["check", "value"],
+          "properties": {
+            "check": {
+              "const": "must_not_include"
+            },
+            "value": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Literal string that must not appear in the output"
+            },
+            "case_sensitive": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether the match must respect letter casing"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "statusCheck": {
+      "allOf": [
+        { "$ref": "#/$defs/checkBase" },
+        {
+          "type": "object",
+          "required": ["check", "operator", "code"],
+          "properties": {
+            "check": {
+              "const": "status"
+            },
+            "operator": {
+              "type": "string",
+              "enum": [">=", "=="],
+              "description": "Comparator used against the observed status code"
+            },
+            "code": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 599,
+              "description": "HTTP status code threshold for the comparison"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "check": {
+      "oneOf": [
+        { "$ref": "#/$defs/mustIncludeCheck" },
+        { "$ref": "#/$defs/mustNotIncludeCheck" },
+        { "$ref": "#/$defs/statusCheck" }
+      ]
+    },
+    "message": {
+      "type": "object",
+      "required": ["role", "content"],
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": ["system", "user", "assistant"],
+          "description": "Role providing the message content"
+        },
+        "content": {
+          "type": "string",
+          "description": "Natural language content of the message"
+        }
+      },
+      "additionalProperties": false
+    },
+    "llmSpec": {
+      "type": "object",
+      "required": ["kind", "conversation", "checks"],
+      "properties": {
+        "kind": {
+          "const": "llm"
+        },
+        "conversation": {
+          "type": "array",
+          "description": "Messages exchanged with the model prior to evaluation",
+          "items": { "$ref": "#/$defs/message" },
+          "minItems": 1
+        },
+        "tools": {
+          "type": "array",
+          "description": "Tool definitions available to the model",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string"
+              },
+              "input_schema": {
+                "type": "object",
+                "description": "JSON Schema for tool input"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" },
+          "minItems": 1,
+          "description": "Assertions evaluated against the model response"
+        }
+      },
+      "additionalProperties": false
+    },
+    "apiSpec": {
+      "type": "object",
+      "required": ["kind", "request", "checks"],
+      "properties": {
+        "kind": {
+          "const": "api"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Base URI for resolving the request path"
+        },
+        "request": {
+          "type": "object",
+          "required": ["method", "path"],
+          "properties": {
+            "method": {
+              "type": "string",
+              "description": "HTTP method (GET, POST, etc.)",
+              "pattern": "^(GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS|TRACE)$"
+            },
+            "path": {
+              "type": "string",
+              "description": "Path component appended to the base URL"
+            },
+            "headers": {
+              "type": "object",
+              "description": "HTTP headers to send with the request",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "query": {
+              "type": "object",
+              "description": "Query parameters to include in the request",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean", "null"]
+              }
+            },
+            "body": {
+              "description": "Serialized request payload",
+              "type": ["string", "object", "array", "null"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "auth": {
+          "type": "object",
+          "description": "Authentication material to apply before the request",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["none", "basic", "bearer", "api_key"],
+              "default": "none"
+            },
+            "credentials": {
+              "type": "object",
+              "description": "Arbitrary credential payload understood by the runner",
+              "additionalProperties": {
+                "type": ["string", "number", "boolean", "null"]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" },
+          "minItems": 1,
+          "description": "Assertions evaluated against the API response"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "llm" } }
+      },
+      "then": {
+        "properties": {
+          "spec": { "$ref": "#/$defs/llmSpec" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "kind": { "const": "api" } }
+      },
+      "then": {
+        "properties": {
+          "spec": { "$ref": "#/$defs/apiSpec" }
+        }
+      }
+    }
+  ]
+}
