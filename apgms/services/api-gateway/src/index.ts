@@ -11,6 +11,39 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+const IDEMPOTENCY_TTL_MS = (() => {
+  const seconds = Number(process.env.IDEMPOTENCY_TTL_SEC ?? "3600");
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return seconds * 1000;
+  }
+  return 3600_000;
+})();
+
+type CachedResponse = {
+  statusCode: number;
+  payload: unknown;
+  expiresAt: number;
+};
+
+const idempotencyCache = new Map<string, CachedResponse>();
+const idempotencyInFlight = new Map<string, Promise<CachedResponse>>();
+
+function getCachedResponse(key: string): CachedResponse | undefined {
+  const cached = idempotencyCache.get(key);
+  if (!cached) return undefined;
+
+  if (cached.expiresAt <= Date.now()) {
+    idempotencyCache.delete(key);
+    return undefined;
+  }
+
+  return cached;
+}
+
+function setCachedResponse(key: string, response: CachedResponse) {
+  idempotencyCache.set(key, response);
+}
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
@@ -41,7 +74,33 @@ app.get("/bank-lines", async (req) => {
 
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
-  try {
+  const idempotencyKeyHeader = req.headers["idempotency-key"];
+  const idempotencyKey = Array.isArray(idempotencyKeyHeader)
+    ? idempotencyKeyHeader[0]
+    : idempotencyKeyHeader;
+
+  if (!idempotencyKey || typeof idempotencyKey !== "string" || !idempotencyKey.trim()) {
+    return rep.code(400).send({ error: "missing_idempotency_key" });
+  }
+
+  const normalizedKey = idempotencyKey.trim();
+  const cached = getCachedResponse(normalizedKey);
+  if (cached) {
+    return rep.code(cached.statusCode).send(cached.payload);
+  }
+
+  const inFlight = idempotencyInFlight.get(normalizedKey);
+  if (inFlight) {
+    try {
+      const result = await inFlight;
+      return rep.code(result.statusCode).send(result.payload);
+    } catch (e) {
+      req.log.error(e);
+      return rep.code(400).send({ error: "bad_request" });
+    }
+  }
+
+  const execute = (async (): Promise<CachedResponse> => {
     const body = req.body as {
       orgId: string;
       date: string;
@@ -49,6 +108,7 @@ app.post("/bank-lines", async (req, rep) => {
       payee: string;
       desc: string;
     };
+
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
@@ -58,10 +118,25 @@ app.post("/bank-lines", async (req, rep) => {
         desc: body.desc,
       },
     });
-    return rep.code(201).send(created);
+
+    return {
+      statusCode: 201,
+      payload: created,
+      expiresAt: Date.now() + IDEMPOTENCY_TTL_MS,
+    };
+  })();
+
+  idempotencyInFlight.set(normalizedKey, execute);
+
+  try {
+    const result = await execute;
+    setCachedResponse(normalizedKey, result);
+    return rep.code(result.statusCode).send(result.payload);
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
+  } finally {
+    idempotencyInFlight.delete(normalizedKey);
   }
 });
 
