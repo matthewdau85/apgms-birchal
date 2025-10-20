@@ -1,0 +1,8 @@
+{
+  "name": "apgms-birchal-webhook",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test test/webhook.spec.ts"
+  }
+}
