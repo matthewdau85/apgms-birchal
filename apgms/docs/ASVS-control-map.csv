@@ -1,0 +1,11 @@
+Control ID,Description,Status,Test Reference
+V1.1.1,Security requirements documented and reviewed,NA,
+V1.3.2,Threat models maintained for critical features,NA,
+V2.1.1,Verify authentication decisions use a central service,FAIL,services/api-gateway/test
+V3.2.3,Use parameterised queries for all data access,PASS,services/api-gateway/src/index.ts
+V4.1.2,Implement input validation for APIs,FAIL,services/api-gateway/test
+V5.2.4,Protect secrets in configuration,FAIL,tests/contract
+V7.2.3,Log security-relevant events with tamper resistance,FAIL,services/audit/test
+V8.3.1,Enforce TLS for all external communications,NA,
+V10.2.1,Verify session management using automated tests,FAIL,tests/e2e
+V11.1.2,Test availability with stress tests,PASS,k6/debit-path.js
