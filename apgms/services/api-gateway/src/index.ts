@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { normalizeTake } from "./lib/pagination";
 
 const app = Fastify({ logger: true });
 
@@ -31,10 +32,11 @@ app.get("/users", async () => {
 
 // List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+  const { take } = req.query as { take?: unknown };
+  const limit = normalizeTake(take);
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
+    take: limit,
   });
   return { lines };
 });
@@ -49,11 +51,15 @@ app.post("/bank-lines", async (req, rep) => {
       payee: string;
       desc: string;
     };
+    const amount = typeof body.amount === "string" ? Number(body.amount) : body.amount;
+    if (!Number.isFinite(amount)) {
+      return rep.code(400).send({ error: "invalid_amount" });
+    }
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
         date: new Date(body.date),
-        amount: body.amount as any,
+        amount,
         payee: body.payee,
         desc: body.desc,
       },
