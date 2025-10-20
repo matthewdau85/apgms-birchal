@@ -1,4 +1,5 @@
-﻿import path from "node:path";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -9,16 +10,45 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import metricsPlugin from "@fastify/metrics";
 import { prisma } from "../../../shared/src/db";
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: {
+    level: process.env.LOG_LEVEL ?? "info",
+    genReqId: (req) => {
+      const headerId = req?.headers["x-request-id"];
+      if (typeof headerId === "string" && headerId.length > 0) {
+        return headerId;
+      }
+      return randomUUID();
+    },
+  },
+});
 
 await app.register(cors, { origin: true });
+await app.register(metricsPlugin);
+
+app.addHook("onRequest", (req, reply, done) => {
+  reply.header("x-request-id", req.id);
+  (req as any).log = req.log.child({ requestId: req.id });
+  done();
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+
+app.get("/ready", async (req, rep) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return { ready: true };
+  } catch (error) {
+    req.log.error({ err: error }, "readiness check failed");
+    return rep.code(503).send({ ready: false });
+  }
+});
 
 // List users (email + org)
 app.get("/users", async () => {
@@ -77,4 +107,3 @@ app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-
