@@ -9,14 +9,77 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import { z } from "zod";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+await app.register(helmet);
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);
+
+await app.register(cors, {
+  origin: (origin, cb) => {
+    if (!origin) {
+      return cb(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return cb(null, true);
+    }
+
+    return cb(null, false);
+  },
+});
 
 // sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.log.info("environment configuration loaded");
+
+const apiGatewayKey = process.env.API_GATEWAY_KEY;
+
+app.addHook("onRequest", async (req, rep) => {
+  if (req.method === "GET") {
+    return;
+  }
+
+  const headerKey = req.headers["x-api-key"];
+
+  if (typeof headerKey !== "string" || !apiGatewayKey || headerKey !== apiGatewayKey) {
+    req.log.warn({ method: req.method, url: req.url }, "unauthorized request blocked");
+    return rep.code(401).send({ error: "unauthorized" });
+  }
+});
+
+const createBankLineRequestSchema = z.object({
+  orgId: z.string().min(1),
+  date: z
+    .string()
+    .min(1)
+    .refine((value) => !Number.isNaN(Date.parse(value)), "Invalid date"),
+  amount: z.union([
+    z.number(),
+    z
+      .string()
+      .min(1)
+      .refine((value) => !Number.isNaN(Number(value)), "Invalid amount"),
+  ]),
+  payee: z.string().min(1),
+  desc: z.string().min(1),
+});
+
+const bankLineResponseSchema = z.object({
+  id: z.string(),
+  orgId: z.string(),
+  date: z.string(),
+  amount: z.string(),
+  payee: z.string(),
+  desc: z.string(),
+  createdAt: z.string(),
+});
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -42,13 +105,8 @@ app.get("/bank-lines", async (req) => {
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
   try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
+    const body = createBankLineRequestSchema.parse(req.body ?? {});
+
     const created = await prisma.bankLine.create({
       data: {
         orgId: body.orgId,
@@ -58,7 +116,15 @@ app.post("/bank-lines", async (req, rep) => {
         desc: body.desc,
       },
     });
-    return rep.code(201).send(created);
+
+    const responsePayload = bankLineResponseSchema.parse({
+      ...created,
+      date: created.date.toISOString(),
+      createdAt: created.createdAt.toISOString(),
+      amount: created.amount.toString(),
+    });
+
+    return rep.code(201).send(responsePayload);
   } catch (e) {
     req.log.error(e);
     return rep.code(400).send({ error: "bad_request" });
