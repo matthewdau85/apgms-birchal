@@ -1,0 +1,12 @@
+{
+  "input": {
+    "query": "How do I run the APGMS project locally?"
+  },
+  "output": {
+    "answer": "Install dependencies with `pnpm i`, build all workspaces using `pnpm -r build`, start services via `docker compose up -d`, and execute the test suites with `pnpm -r test` followed by `pnpm -w exec playwright test`.【F:apgms/README.md†L1-L8】",
+    "citations": [
+      "【F:apgms/README.md†L1-L8】"
+    ],
+    "confidence": 0.88
+  }
+}
