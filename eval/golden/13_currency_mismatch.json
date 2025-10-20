@@ -1,0 +1,12 @@
+{
+  "name": "currency_mismatch",
+  "input": [
+    { "currency": "AUD", "amount": "10.00" },
+    { "currency": "USD", "amount": "5.00" }
+  ],
+  "expected": {
+    "schema_valid": false,
+    "rule_pass": false,
+    "error": "currency_mismatch"
+  }
+}
