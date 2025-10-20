@@ -1,4 +1,10 @@
-﻿node_modules/
+node_modules/
+!node_modules/@fastify/
+node_modules/@fastify/*
+!node_modules/@fastify/metrics/
+node_modules/@fastify/metrics/*
+!node_modules/@fastify/metrics/index.js
+!node_modules/@fastify/metrics/index.d.ts
 dist/
 coverage/
 .env*
