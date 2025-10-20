@@ -1,0 +1,115 @@
+:root {
+  color-scheme: light dark;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+:root {
+  --color-surface: #f5f6f8;
+  --color-surface-secondary: #ffffff;
+  --color-border: rgba(15, 23, 42, 0.1);
+  --color-text: #1f2933;
+  --color-muted: #52616b;
+  --color-accent: #2563eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme='dark'] {
+  --color-surface: #0f172a;
+  --color-surface-secondary: #111c3a;
+  --color-border: rgba(226, 232, 240, 0.1);
+  --color-text: #e2e8f0;
+  --color-muted: #94a3b8;
+  --color-accent: #60a5fa;
+  --color-success: #34d399;
+  --color-warning: #f59e0b;
+  --color-danger: #f87171;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.7);
+  --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'] {
+    color-scheme: dark;
+    --color-surface: #0f172a;
+    --color-surface-secondary: #111c3a;
+    --color-border: rgba(226, 232, 240, 0.1);
+    --color-text: #e2e8f0;
+    --color-muted: #94a3b8;
+    --color-accent: #60a5fa;
+    --color-success: #34d399;
+    --color-warning: #f59e0b;
+    --color-danger: #f87171;
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.7);
+    --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.6);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+button {
+  font: inherit;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--color-muted) 20%, transparent);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-muted) 30%, white 10%),
+    transparent
+  );
+  animation: shimmer 1.25s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
