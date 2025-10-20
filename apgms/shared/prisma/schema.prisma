@@ -18,6 +18,7 @@ model Org {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  /// Stores a bcrypt hash; never persist plaintext passwords.
   password  String
   createdAt DateTime @default(now())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
