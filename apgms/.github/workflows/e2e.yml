@@ -1,4 +1,4 @@
-﻿name: E2E
+name: E2E
 on: [workflow_dispatch]
 jobs:
   e2e:
@@ -13,5 +13,10 @@ jobs:
           node-version: '18'
           cache: 'pnpm'
       - run: pnpm i
+        working-directory: apgms
+      - run: npx playwright install --with-deps
+        working-directory: apgms
       - run: docker compose up -d
+        working-directory: apgms
       - run: pnpm -w exec playwright test
+        working-directory: apgms
