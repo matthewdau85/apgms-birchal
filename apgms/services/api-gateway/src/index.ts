@@ -31,10 +31,15 @@ app.get("/users", async () => {
 
 // List bank lines (latest first)
 app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+  const rawTake = (req.query as Record<string, unknown>).take;
+  const takeValue = Number(rawTake ?? 20);
+  const take = Number.isFinite(takeValue)
+    ? Math.min(Math.max(Math.trunc(takeValue), 1), 200)
+    : 20;
+
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
+    take,
   });
   return { lines };
 });
