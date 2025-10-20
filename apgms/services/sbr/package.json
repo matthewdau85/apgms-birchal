@@ -1,0 +1,12 @@
+{
+  "name": "@apgms/sbr",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test test/sbr.spec.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.6.1"
+  }
+}
