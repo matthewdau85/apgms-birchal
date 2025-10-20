@@ -1,1 +1,14 @@
-{"name":"@apgms/worker","version":"0.1.0","type":"module","main":"dist/index.js","scripts":{"build":"echo build worker","test":"echo test worker"}}
+{
+  "name": "@apgms/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "file:../tools/vitest"
+  }
+}

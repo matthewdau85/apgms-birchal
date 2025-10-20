@@ -1,4 +1,4 @@
-﻿import path from "node:path";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import { resolvePort } from "./config";
 
 const app = Fastify({ logger: true });
 
@@ -70,11 +71,10 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
+const port = resolvePort(process.env.PORT);
 const host = "0.0.0.0";
 
 app.listen({ port, host }).catch((err) => {
   app.log.error(err);
   process.exit(1);
 });
-

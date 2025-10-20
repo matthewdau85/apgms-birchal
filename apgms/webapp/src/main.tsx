@@ -1,1 +1,3 @@
-﻿console.log('webapp');
+import { createWelcomeMessage } from "./greeting";
+
+console.log(createWelcomeMessage("APGMS Webapp"));
