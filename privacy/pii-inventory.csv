@@ -1,0 +1,5 @@
+Field,System,Purpose,LawfulBasis,Retention,EncryptionAtRest,InTransit,AccessByRole
+User.email,IdentityService,Account login and notifications,Contract,Active users + 2 years,AES-256,TLS 1.2+,Support;Engineering;Security
+BankLine.*,PaymentsCore,Settlement reporting and reconciliation,Legal obligation,7 years,AES-256,TLS 1.2+,Finance;Security
+RptToken.*,AnalyticsPlatform,Report scheduling tokens and access control,Legitimate interests,7 years,AES-256,TLS 1.2+,Analytics;Security
+AuditBlob.*,ComplianceVault,Immutable audit evidence and traceability,Legal obligation,7 years,AES-256,TLS 1.2+,Security;Compliance
