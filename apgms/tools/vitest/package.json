@@ -1,0 +1,19 @@
+{
+  "name": "vitest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "main": "index.cjs",
+  "types": "index.d.ts",
+  "typesVersions": {
+    "*": {
+      "globals": ["globals.d.ts"]
+    }
+  },
+  "bin": {
+    "vitest": "bin/vitest.cjs"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
+  }
+}
