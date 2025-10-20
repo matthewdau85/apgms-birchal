@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/api-response.schema.json",
+  "title": "Standard API response envelope",
+  "description": "Canonical schema used to validate service responses during CI and runtime monitoring.",
+  "type": "object",
+  "required": ["status", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome classification for the request."
+    },
+    "data": {
+      "description": "Payload returned on success. Accepts any JSON value but must be present.",
+      "oneOf": [
+        { "type": "object" },
+        { "type": "array" },
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "null" }
+      ]
+    },
+    "error": {
+      "description": "Detailed error metadata when status === 'error'.",
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "description": "Optional structured diagnostics that can be nested JSON objects.",
+          "type": ["object", "array", "string", "number", "boolean", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "meta": {
+      "type": "object",
+      "description": "Optional metadata for observability.",
+      "properties": {
+        "requestId": { "type": "string" },
+        "schemaVersion": { "type": "string" },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "error" } } },
+      "then": { "required": ["error"] }
+    }
+  ]
+}

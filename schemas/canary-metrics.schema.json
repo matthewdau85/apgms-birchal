@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/schemas/canary-metrics.schema.json",
+  "title": "Canary deployment quality metrics",
+  "type": "object",
+  "required": [
+    "releaseId",
+    "windowStart",
+    "windowEnd",
+    "trafficPercentage",
+    "metrics"
+  ],
+  "properties": {
+    "releaseId": {
+      "type": "string",
+      "description": "Identifier for the canary release." 
+    },
+    "windowStart": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "windowEnd": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trafficPercentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "schemaValidity",
+        "taskPassRate",
+        "latencyP95"
+      ],
+      "properties": {
+        "schemaValidity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "taskPassRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "latencyP95": {
+          "type": "number",
+          "minimum": 0,
+          "description": "95th percentile latency in milliseconds for the observation window."
+        }
+      },
+      "additionalProperties": false
+    },
+    "baseline": {
+      "type": "object",
+      "required": [
+        "schemaValidity",
+        "taskPassRate",
+        "latencyP95"
+      ],
+      "properties": {
+        "schemaValidity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "taskPassRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "latencyP95": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Baseline 95th percentile latency in milliseconds." 
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
