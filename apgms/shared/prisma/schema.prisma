@@ -33,4 +33,6 @@ model BankLine {
   payee     String
   desc      String
   createdAt DateTime @default(now())
+
+  @@unique([orgId, date, payee, amount])
 }
