@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
@@ -17,6 +18,28 @@ await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+
+const DEFAULT_IDEMPOTENCY_TTL_SEC = 3600;
+const IDEMPOTENCY_TTL_SEC = (() => {
+  const raw = process.env.IDEMPOTENCY_TTL_SEC;
+  if (!raw) {
+    return DEFAULT_IDEMPOTENCY_TTL_SEC;
+  }
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    app.log.warn(
+      { raw },
+      "Invalid IDEMPOTENCY_TTL_SEC provided; falling back to default",
+    );
+    return DEFAULT_IDEMPOTENCY_TTL_SEC;
+  }
+  return parsed;
+})();
+
+const idempotencyCache = new Map<
+  string,
+  { expiresAt: number; statusCode: number; payload: unknown }
+>();
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
@@ -41,6 +64,29 @@ app.get("/bank-lines", async (req) => {
 
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
+  const keyHeader = req.headers["idempotency-key"];
+  const idempotencyKey = Array.isArray(keyHeader)
+    ? keyHeader[0]
+    : keyHeader;
+  if (
+    !idempotencyKey ||
+    typeof idempotencyKey !== "string" ||
+    idempotencyKey.trim().length === 0
+  ) {
+    return rep.code(400).send({ error: "missing_idempotency_key" });
+  }
+
+  const normalizedKey = idempotencyKey.trim();
+
+  const cached = idempotencyCache.get(normalizedKey);
+  const now = Date.now();
+  if (cached) {
+    if (cached.expiresAt >= now) {
+      return rep.code(cached.statusCode).send(cached.payload);
+    }
+    idempotencyCache.delete(normalizedKey);
+  }
+
   try {
     const body = req.body as {
       orgId: string;
@@ -58,9 +104,25 @@ app.post("/bank-lines", async (req, rep) => {
         desc: body.desc,
       },
     });
-    return rep.code(201).send(created);
+
+    const response = {
+      statusCode: 201,
+      payload: created,
+    };
+
+    idempotencyCache.set(normalizedKey, {
+      ...response,
+      expiresAt: Date.now() + IDEMPOTENCY_TTL_SEC * 1000,
+    });
+
+    return rep.code(response.statusCode).send(response.payload);
   } catch (e) {
     req.log.error(e);
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return rep.code(409).send({ error: "bank_line_conflict" });
+    }
+
     return rep.code(400).send({ error: "bad_request" });
   }
 });
