@@ -1,0 +1,13 @@
+{
+  "name": "@playwright/test",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "playwright": "./bin/playwright.js"
+  },
+  "dependencies": {
+    "tsx": "^4.20.6"
+  }
+}
