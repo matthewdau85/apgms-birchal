@@ -1,1 +1,15 @@
-{"name":"@apgms/webapp","version":"0.1.0","private":true,"scripts":{"build":"echo build webapp","test":"echo test webapp"}}
+{
+  "name": "@apgms/webapp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "workspace:*"
+  }
+}
