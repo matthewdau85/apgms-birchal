@@ -1,0 +1,10 @@
+{
+  "id": "g2-normal-rounding",
+  "kind": "route",
+  "route": "allocations.preview",
+  "input": {
+    "orgId": "org_demo",
+    "bankLine": { "id": "bl_002", "amountCents": 9999, "date": "2025-09-02T00:00:00Z", "payee": "Customer B", "desc": "Small sale" }
+  },
+  "expect": { "valid_schema": true, "rules": ["conservation","non_negative"] }
+}

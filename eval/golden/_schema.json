@@ -1,0 +1,11 @@
+{
+  "id": "unique",
+  "kind": "route",
+  "route": "allocations.apply | allocations.preview | dashboard",
+  "input": { "orgId": "org_123", "bankLine": { "id": "bl_1", "amountCents": 12345, "date": "2025-09-01T00:00:00Z", "payee": "ACME", "desc": "Sale" } },
+  "expect": {
+    "valid_schema": true,
+    "rules": ["conservation", "non_negative", "gate_respected"],
+    "notes": "optional"
+  }
+}

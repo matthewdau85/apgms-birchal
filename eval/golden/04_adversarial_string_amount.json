@@ -1,0 +1,10 @@
+{
+  "id": "g4-adv-string-amount",
+  "kind": "route",
+  "route": "allocations.preview",
+  "input": {
+    "orgId": "org_demo",
+    "bankLine": { "id": "bl_004", "amountCents": "1000", "date": "2025-09-04T00:00:00Z", "payee": "Customer D", "desc": "Bad type" }
+  },
+  "expect": { "valid_schema": false, "rules": [] }
+}
