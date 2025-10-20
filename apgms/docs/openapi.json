@@ -1,0 +1,437 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "APGMS API",
+    "description": "API surface for APGMS",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Reports",
+      "description": "Generated analytics and business reports"
+    }
+  ],
+  "paths": {
+    "/api/v1/reports/cashflow": {
+      "get": {
+        "summary": "Summarise cash flow for an organisation",
+        "description": "Aggregates bank lines for the requested organisation and returns inflow, outflow and net totals.",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "query",
+            "description": "Unique identifier for the organisation to build the report for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier for the organisation to build the report for.",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Optional inclusive lower bound for the reporting window.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Optional inclusive lower bound for the reporting window."
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Optional inclusive upper bound for the reporting window.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Optional inclusive upper bound for the reporting window."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "report"
+                  ],
+                  "properties": {
+                    "report": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "orgId",
+                        "generatedAt",
+                        "currency",
+                        "period",
+                        "totals",
+                        "linesAnalyzed"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Opaque identifier for this generated report."
+                        },
+                        "orgId": {
+                          "type": "string",
+                          "description": "Identifier for the organisation the report was generated for."
+                        },
+                        "generatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Timestamp indicating when the report was produced."
+                        },
+                        "currency": {
+                          "type": "string",
+                          "description": "Currency code used for the monetary fields."
+                        },
+                        "period": {
+                          "type": "object",
+                          "required": [
+                            "from",
+                            "to"
+                          ],
+                          "properties": {
+                            "from": {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "format": "date-time"
+                            },
+                            "to": {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "format": "date-time"
+                            }
+                          }
+                        },
+                        "totals": {
+                          "type": "object",
+                          "required": [
+                            "inflow",
+                            "outflow",
+                            "net"
+                          ],
+                          "properties": {
+                            "inflow": {
+                              "type": "number",
+                              "description": "Total sum of positive bank line amounts."
+                            },
+                            "outflow": {
+                              "type": "number",
+                              "description": "Total sum of absolute values for negative bank line amounts."
+                            },
+                            "net": {
+                              "type": "number",
+                              "description": "Net total (inflow minus outflow) over the provided time period."
+                            }
+                          }
+                        },
+                        "linesAnalyzed": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of bank transaction rows that contributed to the totals."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message",
+                    "issues"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "enum": [
+                        400
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "Bad Request"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "issues": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "path",
+                          "message",
+                          "code"
+                        ],
+                        "properties": {
+                          "path": {
+                            "type": "array",
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "description": "Location of the issue within the payload."
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human readable validation error message."
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "Zod error code for the issue."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "summary": "Summarise cash flow for an organisation",
+        "description": "Aggregates bank lines for the requested organisation and returns inflow, outflow and net totals.",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "query",
+            "description": "Unique identifier for the organisation to build the report for.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier for the organisation to build the report for.",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Optional inclusive lower bound for the reporting window.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Optional inclusive lower bound for the reporting window."
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Optional inclusive upper bound for the reporting window.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Optional inclusive upper bound for the reporting window."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "report"
+                  ],
+                  "properties": {
+                    "report": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "orgId",
+                        "generatedAt",
+                        "currency",
+                        "period",
+                        "totals",
+                        "linesAnalyzed"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Opaque identifier for this generated report."
+                        },
+                        "orgId": {
+                          "type": "string",
+                          "description": "Identifier for the organisation the report was generated for."
+                        },
+                        "generatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Timestamp indicating when the report was produced."
+                        },
+                        "currency": {
+                          "type": "string",
+                          "description": "Currency code used for the monetary fields."
+                        },
+                        "period": {
+                          "type": "object",
+                          "required": [
+                            "from",
+                            "to"
+                          ],
+                          "properties": {
+                            "from": {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "format": "date-time"
+                            },
+                            "to": {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "format": "date-time"
+                            }
+                          }
+                        },
+                        "totals": {
+                          "type": "object",
+                          "required": [
+                            "inflow",
+                            "outflow",
+                            "net"
+                          ],
+                          "properties": {
+                            "inflow": {
+                              "type": "number",
+                              "description": "Total sum of positive bank line amounts."
+                            },
+                            "outflow": {
+                              "type": "number",
+                              "description": "Total sum of absolute values for negative bank line amounts."
+                            },
+                            "net": {
+                              "type": "number",
+                              "description": "Net total (inflow minus outflow) over the provided time period."
+                            }
+                          }
+                        },
+                        "linesAnalyzed": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of bank transaction rows that contributed to the totals."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "error",
+                    "message",
+                    "issues"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "enum": [
+                        400
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "enum": [
+                        "Bad Request"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "issues": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "path",
+                          "message",
+                          "code"
+                        ],
+                        "properties": {
+                          "path": {
+                            "type": "array",
+                            "items": {
+                              "oneOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "description": "Location of the issue within the payload."
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Human readable validation error message."
+                          },
+                          "code": {
+                            "type": "string",
+                            "description": "Zod error code for the issue."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}

@@ -4,14 +4,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "tsx scripts/run-tests.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
     "@fastify/cors": "^11.1.0",
     "dotenv": "^16.6.1",
     "fastify": "^5.6.1",
-    "zod": "^4.1.12"
+    "zod": "^4.1.12",
+    "@fastify/swagger": "^9.4.0",
+    "@fastify/swagger-ui": "^3.0.0",
+    "zod-to-json-schema": "^3.23.5",
+    "zod-validation-error": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.7.1",
