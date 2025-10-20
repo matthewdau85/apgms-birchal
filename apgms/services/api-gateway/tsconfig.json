@@ -9,8 +9,10 @@
     "types": ["node"],
     "baseUrl": "../../",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "vitest": ["tools/vitest-lite/src/index"],
+      "vitest/*": ["tools/vitest-lite/src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "test", "../../shared/types/prisma.d.ts"]
 }

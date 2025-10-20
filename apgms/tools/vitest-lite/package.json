@@ -1,0 +1,12 @@
+{
+  "name": "vitest",
+  "version": "0.0.0-local",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "vitest": "./bin/vitest.mjs"
+  },
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

@@ -10,7 +10,9 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "vitest": ["tools/vitest-lite/src/index"],
+      "vitest/*": ["tools/vitest-lite/src/*"]
     }
   }
 }

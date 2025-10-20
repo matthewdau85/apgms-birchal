@@ -1,8 +1,8 @@
 packages:
-  - services/*
+  - services/api-gateway
   - webapp
   - shared
   - worker
-
+  - tools/vitest-lite
 ignoredBuiltDependencies:
   - '@prisma/client'
