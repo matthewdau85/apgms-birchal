@@ -1,0 +1,27 @@
+{
+  "name": "vitest",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "vitest": "./bin/vitest.js"
+  },
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./globals": {
+      "types": "./dist/globals.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "dependencies": {
+    "tsx": "^4.20.6"
+  }
+}

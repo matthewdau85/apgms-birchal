@@ -9,8 +9,11 @@
     "resolveJsonModule": true,
     "outDir": "dist",
     "baseUrl": ".",
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "allowImportingTsExtensions": true,
     "paths": {
-      "@apgms/shared/*": ["shared/src/*"]
+      "@apgms/shared/*": ["shared/src/*"],
+      "@prisma/client": ["types/prisma-client.d.ts"]
     }
   }
 }
