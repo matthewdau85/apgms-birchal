@@ -11,12 +11,81 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
 
+const IDEMPOTENCY_TTL_SEC = Number.parseInt(
+  process.env.IDEMPOTENCY_TTL_SEC ?? "3600",
+  10,
+);
+
+const ttlMs = Number.isFinite(IDEMPOTENCY_TTL_SEC)
+  ? Math.max(IDEMPOTENCY_TTL_SEC, 0) * 1000
+  : 3600 * 1000;
+
+const idempotencyCache = new Map<
+  string,
+  {
+    expiresAt: number;
+    statusCode: number;
+    payload: unknown;
+    headers: Record<string, string | number | string[] | undefined>;
+  }
+>();
+
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+
+app.addHook("preHandler", async (req, rep) => {
+  if (req.method !== "POST") {
+    return;
+  }
+
+  const keyHeader = req.headers["idempotency-key"];
+  if (!keyHeader || Array.isArray(keyHeader)) {
+    return;
+  }
+
+  const now = Date.now();
+  const cached = idempotencyCache.get(keyHeader);
+  if (cached) {
+    if (cached.expiresAt > now) {
+      rep.headers(cached.headers);
+      rep.code(cached.statusCode);
+      return rep.send(cached.payload);
+    }
+    idempotencyCache.delete(keyHeader);
+  }
+
+  (req as any).idempotencyKey = keyHeader;
+});
+
+app.addHook("onSend", async (req, rep, payload) => {
+  if (req.method !== "POST") {
+    return payload;
+  }
+
+  const key = (req as any).idempotencyKey as string | undefined;
+  if (!key) {
+    return payload;
+  }
+
+  if (rep.statusCode >= 200 && rep.statusCode < 300) {
+    const expiresAt = Date.now() + ttlMs;
+    idempotencyCache.set(key, {
+      expiresAt,
+      statusCode: rep.statusCode,
+      payload,
+      headers: rep.getHeaders() as Record<
+        string,
+        string | number | string[] | undefined
+      >,
+    });
+  }
+
+  return payload;
+});
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
