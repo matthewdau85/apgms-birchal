@@ -9,16 +9,30 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import metricsPlugin from "@fastify/metrics";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
+await app.register(metricsPlugin, {
+  endpoint: "/metrics",
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
+
+app.get("/ready", async (req, rep) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return { ready: true };
+  } catch (error) {
+    req.log.error({ err: error }, "readiness check failed");
+    return rep.code(503).send({ ready: false });
+  }
+});
 
 // List users (email + org)
 app.get("/users", async () => {
