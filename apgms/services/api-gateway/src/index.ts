@@ -9,11 +9,48 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
 import { prisma } from "../../../shared/src/db";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true });
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+await app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      fontSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'self'"],
+      formAction: ["'self'"],
+    },
+  },
+});
+
+await app.register(cors, {
+  origin(origin, cb) {
+    if (!origin) {
+      cb(null, true);
+      return;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error("Origin not allowed"), false);
+  },
+});
 
 // sanity log: confirm env is loaded
 app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
