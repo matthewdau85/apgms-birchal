@@ -10,6 +10,14 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { prisma } from "../../../shared/src/db";
+import {
+  buildValidationError,
+  createBankLineBodySchema,
+  createBankLineResponseSchema,
+  getBankLinesQuerySchema,
+  getBankLinesResponseSchema,
+  toSerializableBankLine,
+} from "./validation";
 
 const app = Fastify({ logger: true });
 
@@ -30,39 +38,40 @@ app.get("/users", async () => {
 });
 
 // List bank lines (latest first)
-app.get("/bank-lines", async (req) => {
-  const take = Number((req.query as any).take ?? 20);
+app.get("/bank-lines", async (req, rep) => {
+  const parsedQuery = getBankLinesQuerySchema.safeParse(req.query ?? {});
+  if (!parsedQuery.success) {
+    return rep.code(400).send(buildValidationError(parsedQuery.error));
+  }
+
   const lines = await prisma.bankLine.findMany({
     orderBy: { date: "desc" },
-    take: Math.min(Math.max(take, 1), 200),
+    take: parsedQuery.data.take,
   });
-  return { lines };
+
+  const response = getBankLinesResponseSchema.parse({
+    lines: lines.map(toSerializableBankLine),
+  });
+
+  return response;
 });
 
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
-  try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
-    const created = await prisma.bankLine.create({
-      data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
-      },
-    });
-    return rep.code(201).send(created);
-  } catch (e) {
-    req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
+  const parsedBody = createBankLineBodySchema.safeParse(req.body ?? {});
+  if (!parsedBody.success) {
+    return rep.code(400).send(buildValidationError(parsedBody.error));
   }
+
+  const created = await prisma.bankLine.create({
+    data: parsedBody.data,
+  });
+
+  const response = createBankLineResponseSchema.parse(
+    toSerializableBankLine(created),
+  );
+
+  return rep.code(201).send(response);
 });
 
 // Print routes so we can SEE POST /bank-lines is registered
