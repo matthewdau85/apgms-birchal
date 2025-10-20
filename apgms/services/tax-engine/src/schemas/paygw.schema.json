@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaygwSummary",
+  "type": "object",
+  "required": ["W1", "W2", "explain"],
+  "properties": {
+    "W1": { "type": "integer", "description": "Gross wages in cents" },
+    "W2": { "type": "integer", "description": "Amount withheld in cents" },
+    "explain": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

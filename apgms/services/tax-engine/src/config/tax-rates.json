@@ -1,0 +1,13 @@
+{
+  "gstRate": 0.1,
+  "paygwBands": [
+    { "threshold": 0, "marginalRate": 0.15, "offset": 0 },
+    { "threshold": 87000, "marginalRate": 0.32, "offset": 1470 },
+    { "threshold": 180000, "marginalRate": 0.37, "offset": 5900 },
+    { "threshold": 250000, "marginalRate": 0.45, "offset": 11900 }
+  ],
+  "rounding": {
+    "mode": "HALF_EVEN",
+    "scale": 0
+  }
+}

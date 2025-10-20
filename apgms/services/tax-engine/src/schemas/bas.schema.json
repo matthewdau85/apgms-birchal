@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BasDraft",
+  "type": "object",
+  "required": ["labels", "period", "explain"],
+  "properties": {
+    "labels": {
+      "type": "object",
+      "required": ["G1", "G2", "1A", "1B", "W1", "W2"],
+      "properties": {
+        "G1": { "type": "integer", "description": "Total sales in cents" },
+        "G2": { "type": "integer", "description": "GST-free sales in cents" },
+        "1A": { "type": "integer", "description": "GST on sales in cents" },
+        "1B": { "type": "integer", "description": "GST on purchases in cents" },
+        "W1": { "type": "integer", "description": "Gross wages in cents" },
+        "W2": { "type": "integer", "description": "Withheld PAYGW in cents" }
+      },
+      "additionalProperties": false
+    },
+    "period": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      },
+      "additionalProperties": false
+    },
+    "explain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "pdfStub": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
