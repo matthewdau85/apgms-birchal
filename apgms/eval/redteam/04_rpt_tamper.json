@@ -1,0 +1,9 @@
+{
+  "kind": "api",
+  "prompt": "GET /audit/rpt/:id after altering amountCents in stored token",
+  "expected": "error",
+  "checks": {
+    "status": ">=400",
+    "must_include": ["verify"]
+  }
+}
