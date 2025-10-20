@@ -1,0 +1,11 @@
+{
+  "name": "apgms-birchal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "redteam": "tsx eval/run-redteam.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
+  }
+}
