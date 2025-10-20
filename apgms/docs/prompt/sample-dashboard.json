@@ -1,0 +1,48 @@
+{
+  "$schema": "https://example.com/schemas/prompt-dashboard.json",
+  "version": "0.1.0",
+  "description": "Stub schema for CI artifact ingestion of prompt deployment dashboards.",
+  "data_sources": [
+    {
+      "id": "ci_artifact",
+      "type": "s3-object",
+      "path": "s3://apgms-artifacts/prompts/{prompt_version}/metrics.json"
+    }
+  ],
+  "widgets": [
+    {
+      "id": "schema-score-trend",
+      "type": "timeseries",
+      "title": "Schema Quality Score",
+      "query": "metrics.schema_score",
+      "thresholds": {
+        "warning": -1,
+        "critical": -2
+      }
+    },
+    {
+      "id": "pass-rate-trend",
+      "type": "timeseries",
+      "title": "Pass Rate",
+      "query": "metrics.pass_rate",
+      "thresholds": {
+        "warning_delta": -2,
+        "critical_delta": -3
+      }
+    },
+    {
+      "id": "latency-p95",
+      "type": "timeseries",
+      "title": "p95 Latency",
+      "query": "metrics.latency_p95_ms",
+      "thresholds": {
+        "warning_delta_percent": 20,
+        "critical_delta_percent": 30
+      }
+    }
+  ],
+  "metadata": {
+    "created_by": "ci-pipeline",
+    "retention_days": 180
+  }
+}
