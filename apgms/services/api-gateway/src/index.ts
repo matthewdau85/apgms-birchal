@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { prisma } from "../../../shared/src/db";
+import { prisma } from "../../../shared/src/db.js";
 
 const app = Fastify({ logger: true });
 
