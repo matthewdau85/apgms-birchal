@@ -15,15 +15,26 @@ const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 
-// sanity log: confirm env is loaded
-app.log.info({ DATABASE_URL: process.env.DATABASE_URL }, "loaded env");
+app.addHook("onRequest", async (req, rep) => {
+  if (req.method === "GET") {
+    return;
+  }
+
+  const providedKeyHeader = req.headers["x-api-key"];
+  const providedKey = Array.isArray(providedKeyHeader)
+    ? providedKeyHeader[0]
+    : providedKeyHeader;
+  if (!process.env.API_GATEWAY_KEY || providedKey !== process.env.API_GATEWAY_KEY) {
+    return rep.code(401).send({ error: "unauthorized" });
+  }
+});
 
 app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
 // List users (email + org)
 app.get("/users", async () => {
   const users = await prisma.user.findMany({
-    select: { email: true, orgId: true, createdAt: true },
+    select: { id: true, email: true, orgId: true },
     orderBy: { createdAt: "desc" },
   });
   return { users };
@@ -33,6 +44,14 @@ app.get("/users", async () => {
 app.get("/bank-lines", async (req) => {
   const take = Number((req.query as any).take ?? 20);
   const lines = await prisma.bankLine.findMany({
+    select: {
+      id: true,
+      orgId: true,
+      date: true,
+      amount: true,
+      payee: true,
+      desc: true,
+    },
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
   });

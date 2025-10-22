@@ -2,6 +2,7 @@
 dist/
 coverage/
 .env*
+!.env.example
 .DS_Store
 .vscode/
 **/__pycache__/
