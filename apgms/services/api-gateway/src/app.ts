@@ -3,6 +3,15 @@ import cors from "@fastify/cors";
 import type { Org, User, BankLine, PrismaClient } from "@prisma/client";
 
 import { maskError, maskObject } from "@apgms/shared";
+import { bankLineInput } from "./schemas/bankLine";
+
+declare module "fastify" {
+  interface FastifyRequest {
+    user?: {
+      orgId: string;
+    };
+  }
+}
 
 const ADMIN_HEADER = "x-admin-token";
 
@@ -24,10 +33,10 @@ export interface AdminOrgExport {
   }>;
   bankLines: Array<{
     id: string;
-    date: string;
-    amount: number;
-    payee: string;
-    desc: string;
+    externalId: string;
+    occurredAt: string;
+    amountCents: number;
+    description: string | null;
     createdAt: string;
   }>;
 }
@@ -75,34 +84,58 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
   app.get("/bank-lines", async (req) => {
     const take = Number((req.query as any).take ?? 20);
     const lines = await prisma.bankLine.findMany({
-      orderBy: { date: "desc" },
+      orderBy: { occurredAt: "desc" },
       take: Math.min(Math.max(take, 1), 200),
     });
-    return { lines };
+
+    return {
+      lines: lines.map((line) => ({
+        id: line.id,
+        orgId: line.orgId,
+        externalId: line.externalId,
+        amountCents: line.amountCents,
+        occurredAt: line.occurredAt.toISOString(),
+        description: line.description,
+        createdAt: line.createdAt.toISOString(),
+      })),
+    };
   });
 
   app.post("/bank-lines", async (req, rep) => {
+    const principal = parsePrincipal(req);
+    if (!principal) {
+      return rep.code(401).send({ error: "unauthorized" });
+    }
+
+    const idempotencyKey = req.headers["idempotency-key"] ?? req.headers["Idempotency-Key" as keyof typeof req.headers];
+    const headerValue = Array.isArray(idempotencyKey) ? idempotencyKey[0] : idempotencyKey;
+    if (!headerValue || typeof headerValue !== "string" || !headerValue.trim()) {
+      return rep.code(400).send({ error: "idempotency_key_required" });
+    }
+
+    const parsed = bankLineInput.safeParse(req.body);
+    if (!parsed.success) {
+      return rep.code(400).send({ error: parsed.error.flatten() });
+    }
+
     try {
-      const body = req.body as {
-        orgId: string;
-        date: string;
-        amount: number | string;
-        payee: string;
-        desc: string;
-      };
-      const created = await prisma.bankLine.create({
-        data: {
-          orgId: body.orgId,
-          date: new Date(body.date),
-          amount: body.amount as any,
-          payee: body.payee,
-          desc: body.desc,
+      const { externalId, occurredAt, description, amountCents } = parsed.data;
+      const row = await prisma.bankLine.upsert({
+        where: { orgId_externalId: { orgId: principal.orgId, externalId } },
+        create: {
+          orgId: principal.orgId,
+          externalId,
+          amountCents,
+          occurredAt: new Date(occurredAt),
+          description: description ?? null,
         },
+        update: {},
       });
-      return rep.code(201).send(created);
+
+      return rep.code(200).send({ id: row.id });
     } catch (e) {
       req.log.error({ err: maskError(e) }, "failed to create bank line");
-      return rep.code(400).send({ error: "bad_request" });
+      return rep.code(409).send({ error: "duplicate" });
     }
   });
 
@@ -204,29 +237,37 @@ function buildOrgExport(org: ExportableOrg): AdminOrgExport {
     })),
     bankLines: org.lines.map((line) => ({
       id: line.id,
-      date: line.date.toISOString(),
-      amount: normaliseAmount(line.amount),
-      payee: line.payee,
-      desc: line.desc,
+      externalId: line.externalId,
+      occurredAt: line.occurredAt.toISOString(),
+      amountCents: line.amountCents,
+      description: line.description ?? null,
       createdAt: line.createdAt.toISOString(),
     })),
   };
 }
 
-function normaliseAmount(amount: unknown): number {
-  if (typeof amount === "number") {
-    return amount;
+function parsePrincipal(req: FastifyRequest): { orgId: string } | null {
+  const header = req.headers.authorization ?? req.headers["Authorization" as keyof typeof req.headers];
+  if (!header || Array.isArray(header)) {
+    return null;
   }
-  if (typeof amount === "string") {
-    const parsed = Number(amount);
-    return Number.isNaN(parsed) ? 0 : parsed;
+
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  if (!match) {
+    return null;
   }
-  if (amount && typeof (amount as any).toNumber === "function") {
-    try {
-      return (amount as any).toNumber();
-    } catch {
-      return 0;
-    }
+
+  const token = match[1];
+  const [, , orgId] = token.split(":");
+  if (!orgId) {
+    return null;
   }
-  return 0;
+
+  const trimmedOrgId = orgId.trim();
+  if (!trimmedOrgId) {
+    return null;
+  }
+
+  (req as FastifyRequest & { user: { orgId: string } }).user = { orgId: trimmedOrgId };
+  return { orgId: trimmedOrgId };
 }

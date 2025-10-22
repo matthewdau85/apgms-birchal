@@ -22,10 +22,10 @@ CREATE TABLE "User" (
 CREATE TABLE "BankLine" (
     "id" TEXT NOT NULL,
     "orgId" TEXT NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
-    "amount" DECIMAL(65,30) NOT NULL,
-    "payee" TEXT NOT NULL,
-    "desc" TEXT NOT NULL,
+    "externalId" TEXT NOT NULL,
+    "amountCents" INTEGER NOT NULL,
+    "occurredAt" TIMESTAMP(3) NOT NULL,
+    "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "BankLine_pkey" PRIMARY KEY ("id")
@@ -33,6 +33,7 @@ CREATE TABLE "BankLine" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "BankLine_orgId_externalId_key" ON "BankLine"("orgId", "externalId");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_orgId_fkey" FOREIGN KEY ("orgId") REFERENCES "Org"("id") ON DELETE CASCADE ON UPDATE CASCADE;
