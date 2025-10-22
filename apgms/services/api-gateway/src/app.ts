@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
 import type { Org, User, BankLine, PrismaClient } from "@prisma/client";
 
 import { maskError, maskObject } from "@apgms/shared";
@@ -53,12 +54,36 @@ async function loadDefaultPrisma(): Promise<PrismaLike> {
   return cachedPrisma as PrismaLike;
 }
 
+function parseEnvList(value: string | undefined): string[] {
+  return value
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean) ?? [];
+}
+
 export async function createApp(options: CreateAppOptions = {}): Promise<FastifyInstance> {
   const prisma = (options.prisma as PrismaLike | undefined) ?? (await loadDefaultPrisma());
 
   const app = Fastify({ logger: true });
 
-  app.register(cors, { origin: true });
+  const corsAllowlist = parseEnvList(process.env.CORS_ALLOWLIST);
+  const cspConnectSources = ["'self'", ...parseEnvList(process.env.CSP_CONNECT)];
+
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        connectSrc: cspConnectSources,
+        imgSrc: ["'self'"],
+        frameAncestors: ["'none'"],
+      },
+    },
+    frameguard: { action: "deny" },
+  });
+
+  await app.register(cors, { origin: corsAllowlist });
 
   app.log.info(maskObject({ DATABASE_URL: process.env.DATABASE_URL }), "loaded env");
 
