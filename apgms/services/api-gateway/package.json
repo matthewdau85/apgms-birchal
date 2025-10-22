@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx src/index.ts",
-    "test": "tsx --test test/privacy.spec.ts"
+    "test": "vitest run",
+    "test:unit": "vitest run src/**/*.test.ts",
+    "test:api": "vitest run test/**/*.spec.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
@@ -17,6 +19,7 @@
   "devDependencies": {
     "@types/node": "^24.7.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^1.6.0"
   }
 }
