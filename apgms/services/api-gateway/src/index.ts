@@ -9,7 +9,45 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import { z } from "zod";
+import type { BankLine } from "@prisma/client";
 import { prisma } from "../../../shared/src/db";
+
+const CreateBankLineSchema = z.object({
+  orgId: z.string().min(1),
+  date: z.coerce.date(),
+  amount: z.coerce.number(),
+  payee: z.string().min(1),
+  desc: z.string().min(1),
+});
+
+const BankLineResponseSchema = z.object({
+  id: z.string(),
+  orgId: z.string(),
+  date: z.string().datetime(),
+  amount: z.number(),
+  payee: z.string(),
+  desc: z.string(),
+  createdAt: z.string().datetime(),
+});
+
+const BankLineListSchema = z.object({
+  lines: z.array(BankLineResponseSchema),
+});
+
+type BankLineResponse = z.infer<typeof BankLineResponseSchema>;
+
+function serializeBankLine(line: BankLine): BankLineResponse {
+  return BankLineResponseSchema.parse({
+    id: line.id,
+    orgId: line.orgId,
+    date: line.date.toISOString(),
+    amount: Number(line.amount),
+    payee: line.payee,
+    desc: line.desc,
+    createdAt: line.createdAt.toISOString(),
+  });
+}
 
 const app = Fastify({ logger: true });
 
@@ -36,32 +74,34 @@ app.get("/bank-lines", async (req) => {
     orderBy: { date: "desc" },
     take: Math.min(Math.max(take, 1), 200),
   });
-  return { lines };
+  return BankLineListSchema.parse({
+    lines: lines.map(serializeBankLine),
+  });
 });
 
 // Create a bank line
 app.post("/bank-lines", async (req, rep) => {
+  const parsedBody = CreateBankLineSchema.safeParse(req.body);
+  if (!parsedBody.success) {
+    return rep.code(400).send({ errors: parsedBody.error.issues });
+  }
+
+  const { orgId, date, amount, payee, desc } = parsedBody.data;
+
   try {
-    const body = req.body as {
-      orgId: string;
-      date: string;
-      amount: number | string;
-      payee: string;
-      desc: string;
-    };
     const created = await prisma.bankLine.create({
       data: {
-        orgId: body.orgId,
-        date: new Date(body.date),
-        amount: body.amount as any,
-        payee: body.payee,
-        desc: body.desc,
+        orgId,
+        date,
+        amount,
+        payee,
+        desc,
       },
     });
-    return rep.code(201).send(created);
+    return rep.code(201).send(serializeBankLine(created));
   } catch (e) {
     req.log.error(e);
-    return rep.code(400).send({ error: "bad_request" });
+    return rep.code(500).send({ error: "unexpected_error" });
   }
 });
 
@@ -70,11 +110,15 @@ app.ready(() => {
   app.log.info(app.printRoutes());
 });
 
-const port = Number(process.env.PORT ?? 3000);
-const host = "0.0.0.0";
+export { app };
 
-app.listen({ port, host }).catch((err) => {
-  app.log.error(err);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== "test") {
+  const port = Number(process.env.PORT ?? 3000);
+  const host = "0.0.0.0";
+
+  app.listen({ port, host }).catch((err) => {
+    app.log.error(err);
+    process.exit(1);
+  });
+}
 

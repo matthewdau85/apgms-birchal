@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "test": "tsx test/run-tests.ts"
   },
   "dependencies": {
     "@apgms/shared": "workspace:*",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@types/node": "^24.7.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "file:test/vitest"
   }
 }
