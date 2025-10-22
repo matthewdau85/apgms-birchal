@@ -17,9 +17,27 @@ async function main() {
   const today = new Date();
   await prisma.bankLine.createMany({
     data: [
-      { orgId: org.id, date: new Date(today.getFullYear(), today.getMonth(), today.getDate()-2), amount: 1250.75, payee: "Acme", desc: "Office fit-out" },
-      { orgId: org.id, date: new Date(today.getFullYear(), today.getMonth(), today.getDate()-1), amount: -299.99, payee: "CloudCo", desc: "Monthly sub" },
-      { orgId: org.id, date: today, amount: 5000.00, payee: "Birchal", desc: "Investment received" },
+      {
+        orgId: org.id,
+        externalId: "demo-line-1",
+        amountCents: 125075,
+        occurredAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2),
+        description: "Office fit-out",
+      },
+      {
+        orgId: org.id,
+        externalId: "demo-line-2",
+        amountCents: -29999,
+        occurredAt: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1),
+        description: "Monthly sub",
+      },
+      {
+        orgId: org.id,
+        externalId: "demo-line-3",
+        amountCents: 500000,
+        occurredAt: today,
+        description: "Investment received",
+      },
     ],
     skipDuplicates: true,
   });

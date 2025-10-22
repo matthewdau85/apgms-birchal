@@ -180,7 +180,10 @@ describe("POST /admin/data/delete", () => {
 
     assert.equal(findCalls, 1);
     assert.equal(countCalls.length, 1);
-    assert.equal(countCalls[0].where.payee, user.email);
+    assert.deepEqual(countCalls[0].where, {
+      orgId: defaultPayload.orgId,
+      description: { contains: user.email },
+    });
     assert.equal(deleteCalled, false);
     assert.equal(updateCalls.length, 1);
     const updateArgs = updateCalls[0];

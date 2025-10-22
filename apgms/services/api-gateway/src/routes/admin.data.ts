@@ -249,27 +249,29 @@ async function detectForeignKeyRisk(
   email: string,
   orgId: string
 ): Promise<boolean> {
-  const relatedLines = await prisma.bankLine.count({
+  const referencesByEmail = await prisma.bankLine.count({
     where: {
       orgId,
-      payee: email,
+      description: {
+        contains: email,
+      },
     },
   });
 
-  if (relatedLines > 0) {
+  if (referencesByEmail > 0) {
     return true;
   }
 
-  const otherRefs = await prisma.bankLine.count({
+  const referencesById = await prisma.bankLine.count({
     where: {
       orgId,
-      desc: {
+      description: {
         contains: userId,
       },
     },
   });
 
-  return otherRefs > 0;
+  return referencesById > 0;
 }
 
 function anonymizeEmail(email: string, userId: string): string {

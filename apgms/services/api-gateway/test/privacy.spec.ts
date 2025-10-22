@@ -80,8 +80,11 @@ test("admin export returns organisation data without secrets", async (t) => {
     createdAt: stub.state.users[0].createdAt.toISOString(),
   });
   assert.equal(body.export.bankLines.length, 1);
-  assert.equal(body.export.bankLines[0].amount, 1200);
-  assert.equal(body.export.bankLines[0].date, stub.state.bankLines[0].date.toISOString());
+  assert.equal(body.export.bankLines[0].amountCents, 1200);
+  assert.equal(
+    body.export.bankLines[0].occurredAt,
+    stub.state.bankLines[0].occurredAt.toISOString()
+  );
   assert.equal(body.export.org.deletedAt, null);
 });
 
@@ -166,8 +169,8 @@ function createPrismaStub(initial?: Partial<State>): Stub {
     bankLine: {
       findMany: async ({ orderBy, take }) => {
         let lines = [...state.bankLines];
-        if (orderBy?.date === "desc") {
-          lines.sort((a, b) => b.date.getTime() - a.date.getTime());
+        if (orderBy?.occurredAt === "desc") {
+          lines.sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime());
         }
         if (typeof take === "number") {
           lines = lines.slice(0, take);
@@ -178,10 +181,10 @@ function createPrismaStub(initial?: Partial<State>): Stub {
         const created = {
           id: data.id ?? randomUUID(),
           orgId: data.orgId!,
-          date: data.date as Date,
-          amount: data.amount as any,
-          payee: data.payee!,
-          desc: data.desc!,
+          externalId: data.externalId!,
+          amountCents: data.amountCents!,
+          occurredAt: data.occurredAt as Date,
+          description: data.description ?? null,
           createdAt: data.createdAt ?? new Date(),
         } as unknown as BankLine;
         state.bankLines.push(created);
@@ -231,10 +234,10 @@ function seedOrgWithData(state: State, ids: { orgId: string; userId: string; lin
   state.bankLines.push({
     id: ids.lineId,
     orgId: ids.orgId,
-    date: new Date("2024-02-02T00:00:00Z"),
-    amount: 1200 as any,
-    payee: "Vendor",
-    desc: "Invoice",
+    externalId: "ext-1",
+    amountCents: 1200,
+    occurredAt: new Date("2024-02-02T00:00:00Z"),
+    description: "Invoice",
     createdAt,
   } as BankLine);
 }

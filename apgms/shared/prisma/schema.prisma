@@ -27,14 +27,16 @@ model User {
 }
 
 model BankLine {
-  id        String   @id @default(cuid())
-  org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId     String
-  date      DateTime
-  amount    Decimal
-  payee     String
-  desc      String
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  org         Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId       String
+  externalId  String
+  amountCents Int
+  occurredAt  DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@unique([orgId, externalId])
 }
 
 model OrgTombstone {
