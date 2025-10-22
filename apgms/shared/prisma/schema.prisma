@@ -18,6 +18,7 @@ model Org {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
+  /// BCrypt hash of the user's password.
   password  String
   createdAt DateTime @default(now())
   org       Org      @relation(fields: [orgId], references: [id], onDelete: Cascade)
