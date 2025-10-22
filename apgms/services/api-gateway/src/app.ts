@@ -1,5 +1,8 @@
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import cors from "@fastify/cors";
+import helmet from "@fastify/helmet";
+import fastifyJwt from "@fastify/jwt";
+import "@fastify/jwt";
 import type { Org, User, BankLine, PrismaClient } from "@prisma/client";
 
 import { maskError, maskObject } from "@apgms/shared";
@@ -58,53 +61,112 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
 
   const app = Fastify({ logger: true });
 
-  app.register(cors, { origin: true });
+  const corsOrigins = process.env.CORS_ALLOWLIST?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? [];
+
+  await app.register(helmet);
+  await app.register(cors, { origin: corsOrigins });
+  await app.register(fastifyJwt, {
+    secret: process.env.JWT_DEV_SECRET ?? "CHANGE_ME",
+  });
+
+  app.decorate("requireAuth", async (req: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await req.jwtVerify();
+      if (!req.user || typeof req.user !== "object" || !("orgId" in req.user) || !req.user.orgId) {
+        return reply.code(403).send({ error: "org required" });
+      }
+    } catch (err) {
+      req.log.error({ err: maskError(err) }, "unauthorized");
+      return reply.code(401).send({ error: "unauthorized" });
+    }
+  });
+
+  app.decorate(
+    "requireRole",
+    (role: string) => async (req: FastifyRequest, reply: FastifyReply) => {
+      if (!req.user || (req.user as any).role !== role) {
+        return reply.code(403).send({ error: "forbidden" });
+      }
+    },
+  );
 
   app.log.info(maskObject({ DATABASE_URL: process.env.DATABASE_URL }), "loaded env");
 
   app.get("/health", async () => ({ ok: true, service: "api-gateway" }));
 
-  app.get("/users", async () => {
-    const users = await prisma.user.findMany({
-      select: { email: true, orgId: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
-    });
-    return { users };
-  });
+  app.get(
+    "/users",
+    { preHandler: [app.requireAuth] },
+    async (req) => {
+      const orgId = (req.user as any).orgId as string;
+      const users = await prisma.user.findMany({
+        where: { orgId },
+        select: { id: true, name: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      });
+      return users;
+    },
+  );
 
-  app.get("/bank-lines", async (req) => {
-    const take = Number((req.query as any).take ?? 20);
-    const lines = await prisma.bankLine.findMany({
-      orderBy: { date: "desc" },
-      take: Math.min(Math.max(take, 1), 200),
-    });
-    return { lines };
-  });
-
-  app.post("/bank-lines", async (req, rep) => {
-    try {
-      const body = req.body as {
-        orgId: string;
-        date: string;
-        amount: number | string;
-        payee: string;
-        desc: string;
-      };
-      const created = await prisma.bankLine.create({
-        data: {
-          orgId: body.orgId,
-          date: new Date(body.date),
-          amount: body.amount as any,
-          payee: body.payee,
-          desc: body.desc,
+  app.get(
+    "/bank-lines",
+    { preHandler: [app.requireAuth] },
+    async (req) => {
+      const orgId = (req.user as any).orgId as string;
+      const take = Number((req.query as any).take ?? 20);
+      const lines = await prisma.bankLine.findMany({
+        where: { orgId },
+        orderBy: { date: "desc" },
+        take: Math.min(Math.max(take, 1), 200),
+        select: {
+          id: true,
+          date: true,
+          amount: true,
+          payee: true,
+          desc: true,
+          createdAt: true,
         },
       });
-      return rep.code(201).send(created);
-    } catch (e) {
-      req.log.error({ err: maskError(e) }, "failed to create bank line");
-      return rep.code(400).send({ error: "bad_request" });
-    }
-  });
+      return lines;
+    },
+  );
+
+  app.post(
+    "/bank-lines",
+    { preHandler: [app.requireAuth] },
+    async (req, rep) => {
+      try {
+        const orgId = (req.user as any).orgId as string;
+        const body = req.body as {
+          date: string;
+          amount: number | string;
+          payee: string;
+          desc: string;
+        };
+        const created = await prisma.bankLine.create({
+          data: {
+            orgId,
+            date: new Date(body.date),
+            amount: body.amount as any,
+            payee: body.payee,
+            desc: body.desc,
+          },
+          select: {
+            id: true,
+            date: true,
+            amount: true,
+            payee: true,
+            desc: true,
+            createdAt: true,
+          },
+        });
+        return rep.code(201).send(created);
+      } catch (e) {
+        req.log.error({ err: maskError(e) }, "failed to create bank line");
+        return rep.code(400).send({ error: "bad_request" });
+      }
+    },
+  );
 
   app.get("/admin/export/:orgId", async (req, rep) => {
     if (!requireAdmin(req, rep)) {
@@ -169,6 +231,13 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
   });
 
   return app;
+}
+
+declare module "fastify" {
+  interface FastifyInstance {
+    requireAuth(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply | void>;
+    requireRole(role: string): (req: FastifyRequest, reply: FastifyReply) => Promise<FastifyReply | void>;
+  }
 }
 
 function requireAdmin(req: FastifyRequest, rep: FastifyReply): boolean {
