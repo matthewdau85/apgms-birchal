@@ -7,7 +7,19 @@ defaults:
     working-directory: apgms
 
 jobs:
+  conflict-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on merge conflict markers
+        run: |
+          if git grep -nE '<<<<<<<|=======|>>>>>>>' -- . ':!**/*.lock'; then
+            echo "Conflict markers found"
+            exit 1
+          fi
+
   build:
+    needs: conflict-guard
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +35,28 @@ jobs:
       - run: pnpm exec playwright install --with-deps
       - run: pnpm -r build
       - run: pnpm -r test
+
+  coverage:
+    needs: conflict-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: apgms/pnpm-lock.yaml
+      - run: pnpm install
+      - run: pnpm test -- --coverage
+      - name: Enforce coverage threshold
+        run: |
+          threshold=85
+          ACTUAL=$(node -e "console.log(require('./coverage/coverage-summary.json').total.statements.pct)")
+          echo "Coverage ${ACTUAL}%"
+          node -e "process.exit(Number(process.argv[1])>=${threshold}?0:1)" "$ACTUAL"
 
   axe:
     needs: build
@@ -40,6 +74,22 @@ jobs:
       - run: pnpm install
       - run: pnpm exec playwright install --with-deps
       - run: pnpm --filter @apgms/webapp test:axe
+
+  prisma-migrations:
+    needs: conflict-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: apgms/pnpm-lock.yaml
+      - run: pnpm install
+      - run: pnpm -w exec prisma migrate status --schema apgms/shared/prisma/schema.prisma
 
   lighthouse:
     needs: build
