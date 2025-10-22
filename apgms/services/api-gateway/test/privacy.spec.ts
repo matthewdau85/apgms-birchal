@@ -224,7 +224,7 @@ function seedOrgWithData(state: State, ids: { orgId: string; userId: string; lin
   state.users.push({
     id: ids.userId,
     email: "someone@example.com",
-    password: "hashed-password",
+    passwordHash: "hashed-password",
     orgId: ids.orgId,
     createdAt,
   } as User);

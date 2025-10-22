@@ -3,6 +3,7 @@ const SENSITIVE_KEY_PATTERNS = [
   "token",
   "secret",
   "key",
+  "passwordhash",
   "authorization",
   "cookie",
   "session",
