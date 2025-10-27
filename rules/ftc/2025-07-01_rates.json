@@ -1,0 +1,40 @@
+{
+  "id": "ftc.rates.2025-07-01",
+  "effective_from": "2025-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "Fuel tax credit rates",
+    "url": "https://www.ato.gov.au/business/excise-and-excise-equivalent-goods/fuel-tax-credits/",
+    "retrieved_at": "2025-04-01T00:00:00Z",
+    "sha256": "912f2a47b53b19dbe73e0ca8f9a1d52339cf2dd87c2a52f77ae8eb7d791661dd"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    {
+      "fuel_type": "diesel",
+      "activity": "heavy_vehicle_on_public_roads",
+      "rate_per_litre": 0.185,
+      "notes": "Reduced by road user charge."
+    },
+    {
+      "fuel_type": "diesel",
+      "activity": "auxiliary_equipment",
+      "rate_per_litre": 0.470,
+      "notes": "Full rate for auxiliary equipment on heavy vehicles."
+    },
+    {
+      "fuel_type": "petrol",
+      "activity": "agriculture",
+      "rate_per_litre": 0.470,
+      "notes": "Full rate for agricultural use."
+    }
+  ],
+  "examples": [
+    {
+      "scenario": "Heavy vehicle travelling on public roads",
+      "inputs": { "litres": 5000, "fuel_type": "diesel", "activity": "heavy_vehicle_on_public_roads" },
+      "expected_outputs": { "credit": 925.00 }
+    }
+  ]
+}

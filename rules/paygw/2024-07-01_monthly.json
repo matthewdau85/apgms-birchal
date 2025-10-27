@@ -1,0 +1,25 @@
+{
+  "id": "paygw.monthly.2024-07-01",
+  "effective_from": "2024-07-01",
+  "effective_to": null,
+  "source": {
+    "publisher": "ATO",
+    "document": "Tax table for monthly payments",
+    "url": "https://www.ato.gov.au/rates/tax-tables/monthly-tax-table/",
+    "retrieved_at": "2024-07-15T00:00:00Z",
+    "sha256": "78640a7785df4e9a59597a2cfac0c1af2d95b0d9042975be92ee1630f17cbe9b"
+  },
+  "schema_version": "1.0.0",
+  "rules": [
+    { "threshold_from": 0, "threshold_to": 1558, "withhold": 0, "formula": "0" },
+    { "threshold_from": 1559, "threshold_to": 1895, "formula": "(x - 1558) * 0.19" },
+    { "threshold_from": 1896, "threshold_to": 2375, "formula": "64.60 + (x - 1895) * 0.2900" },
+    { "threshold_from": 2376, "threshold_to": 3125, "formula": "201.41 + (x - 2375) * 0.3300" },
+    { "threshold_from": 3126, "threshold_to": 5558, "formula": "449.74 + (x - 3125) * 0.3700" },
+    { "threshold_from": 5559, "threshold_to": null, "formula": "1354.68 + (x - 5558) * 0.45" }
+  ],
+  "examples": [
+    { "gross": 5200, "expected_withholding": 1060.15 },
+    { "gross": 3000, "expected_withholding": 448.15 }
+  ]
+}
