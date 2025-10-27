@@ -1,7 +1,12 @@
-﻿[tool.poetry]
-name='apgms-tax-engine'
-version='0.1.0'
+[tool.poetry]
+name = 'apgms-tax-engine'
+version = '0.1.0'
+
 [tool.poetry.dependencies]
-python='^3.10'
-fastapi='*'
-uvicorn='*'
+python = '^3.10'
+
+[tool.poetry.group.dev.dependencies]
+pytest = '^8.3.3'
+
+[tool.pytest.ini_options]
+pythonpath = ["app"]
