@@ -1,0 +1,21 @@
+{
+  "name": "apgms",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "postinstall": "pnpm -w approve-builds || true",
+    "db:migrate": "prisma migrate dev --schema=shared/prisma/schema.prisma",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:rehash": "tsx scripts/rehash.ts",
+    "dev:api": "pnpm --filter @apgms/api-gateway dev",
+    "dev:web": "pnpm --filter @apgms/webapp dev",
+    "dev:worker": "pnpm --filter @apgms/worker dev",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "prisma": "6.17.1"
+  }
+}
