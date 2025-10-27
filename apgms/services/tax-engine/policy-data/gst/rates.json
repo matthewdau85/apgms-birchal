@@ -1,0 +1,23 @@
+{
+  "version": "2020-07-01",
+  "published": "2020-07-01",
+  "source": "Historical GST rates compiled from ATO QC 16515",
+  "rates": [
+    {
+      "id": "gst-2000",
+      "rate": 0.1,
+      "effectiveFrom": "2000-07-01",
+      "effectiveTo": null,
+      "adjustmentType": "standard",
+      "notes": "Standard GST rate introduced 1 July 2000"
+    },
+    {
+      "id": "luxury-car",
+      "rate": 0.33,
+      "effectiveFrom": "2010-07-01",
+      "effectiveTo": null,
+      "adjustmentType": "luxury",
+      "notes": "Illustrative luxury car tax equivalent for GST adjustments"
+    }
+  ]
+}
