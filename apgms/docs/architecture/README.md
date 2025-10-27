@@ -1,1 +1,3 @@
-﻿# C4 + Sequences
+# Architecture Documentation
+
+- [Service Layer Design](./service-layer.md)
