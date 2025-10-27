@@ -1,1 +1,11 @@
-{"name":"@apgms/worker","version":"0.1.0","type":"module","main":"dist/index.js","scripts":{"build":"echo build worker","test":"echo test worker"}}
+{
+  "name": "@apgms/worker",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "test": "echo test worker"
+  }
+}
