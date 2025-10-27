@@ -1,1 +1,1 @@
-﻿console.log('worker');
+export { ingestAtoTaxTables } from './ingestion/atoTaxIngestion.js';

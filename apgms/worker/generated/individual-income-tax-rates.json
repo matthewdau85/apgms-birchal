@@ -1,0 +1,47 @@
+{
+  "slug": "individual-income-tax-rates",
+  "effectiveFrom": "2024-07-01",
+  "brackets": [
+    {
+      "index": 0,
+      "lower": 0,
+      "upper": 18200,
+      "marginalRate": 0,
+      "baseTax": 0,
+      "threshold": 0
+    },
+    {
+      "index": 1,
+      "lower": 18201,
+      "upper": 45000,
+      "marginalRate": 0.19,
+      "baseTax": 0,
+      "threshold": 18200
+    },
+    {
+      "index": 2,
+      "lower": 45001,
+      "upper": 120000,
+      "marginalRate": 0.325,
+      "baseTax": 5092,
+      "threshold": 45000
+    },
+    {
+      "index": 3,
+      "lower": 120001,
+      "upper": 180000,
+      "marginalRate": 0.37,
+      "baseTax": 29467,
+      "threshold": 120000
+    },
+    {
+      "index": 4,
+      "lower": 180001,
+      "upper": null,
+      "marginalRate": 0.45,
+      "baseTax": 51667,
+      "threshold": 180000
+    }
+  ],
+  "sourceUrl": "https://www.ato.gov.au/rates/individual-income-tax-rates/"
+}

@@ -1,0 +1,8 @@
+{
+  "individual-income-tax-rates": {
+    "contentHash": "1bd006f790a8e820ecd58f2dc59eaf7a8a011b6283f6106770d4c7bb19225702",
+    "effectiveFrom": "2024-07-01",
+    "lastFetched": "2025-10-11T19:30:52.638Z",
+    "summary": "Base tax for bracket 3 ($45,001 – $120,000) changed from $0 to $5,092.\nBase tax for bracket 4 ($120,001 – $180,000) changed from $0 to $29,467.\nBase tax for bracket 5 ($180,001 and above) changed from $0 to $51,667."
+  }
+}
